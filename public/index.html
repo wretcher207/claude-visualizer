@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Visualizer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Left: ambient visualization (70%) -->
+  <div id="canvas-container">
+
+    <!-- Background composition layers -->
+    <div id="bg-layers">
+      <div class="bg-layer" id="bg-atmosphere"></div>
+      <div class="bg-layer" id="bg-sun-glow"></div>
+      <div class="bg-layer" id="bg-sun-core"></div>
+      <div class="bg-layer bg-halo" id="bg-halo-1"></div>
+      <div class="bg-layer bg-halo" id="bg-halo-2"></div>
+      <div class="bg-layer bg-halo" id="bg-halo-3"></div>
+      <div class="bg-layer" id="bg-leak-tr"></div>
+      <div class="bg-layer" id="bg-leak-bl"></div>
+      <div class="bg-layer" id="bg-band-1"></div>
+      <div class="bg-layer" id="bg-band-2"></div>
+      <div class="bg-layer" id="bg-triangle"></div>
+      <div class="bg-layer" id="bg-ground-far"></div>
+      <div class="bg-layer" id="bg-ground-mid"></div>
+      <div class="bg-layer" id="bg-ground-near"></div>
+      <div class="bg-layer" id="bg-horizon-line"></div>
+      <div class="bg-layer" id="bg-haze-top"></div>
+      <div class="bg-layer" id="bg-underglow"></div>
+    </div>
+
+    <canvas id="ambient-canvas"></canvas>
+    <div id="grain-overlay"></div>
+
+    <!-- UI overlays -->
+    <div id="connection-status">
+      <span id="status-dot"></span>
+      <span id="status-text">Connecting...</span>
+    </div>
+    <div id="audio-controls">
+      <button id="audio-toggle" title="Click to enable audio">
+        <span id="audio-icon">&#9835;</span>
+        <span id="audio-label">Enable Audio</span>
+      </button>
+    </div>
+    <div id="canvas-title">Claude Flow</div>
+  </div>
+
+  <!-- Right: technical sidebar (30%) -->
+  <div id="sidebar">
+    <div id="sidebar-header">
+      <h1>Activity</h1>
+      <div id="header-controls">
+        <span id="session-indicator"></span>
+        <button id="settings-btn" title="Display Settings">&#9881;</button>
+      </div>
+    </div>
+
+    <!-- Settings panel (toggled by gear button) -->
+    <div id="settings-panel"></div>
+
+    <!-- Session stats bar -->
+    <div id="session-stats">
+      <span id="stat-tool-count">0 tools</span>
+      <span class="stat-dot"></span>
+      <span id="stat-total-time">0s total</span>
+      <span class="stat-dot"></span>
+      <span id="stat-session-clock">--:--</span>
+    </div>
+
+    <!-- Event feed -->
+    <div id="event-feed">
+      <div id="empty-state">Waiting for events...</div>
+    </div>
+  </div>
+
+  <script src="canvas.js"></script>
+  <script src="audio.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

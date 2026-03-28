@@ -1,0 +1,21 @@
+{
+  "name": "claude-visualizer",
+  "version": "1.0.0",
+  "description": "Real-time ambient visualizer for Claude Code tool events — Tycho-inspired generative visuals and music",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "claude-code",
+    "visualizer",
+    "ambient",
+    "generative-music",
+    "developer-tools"
+  ],
+  "license": "MIT",
+  "private": false
+}
