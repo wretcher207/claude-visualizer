@@ -1,7 +1,7 @@
 {
   "name": "claude-visualizer",
-  "version": "1.0.0",
-  "description": "Real-time ambient visualizer for Claude Code tool events — Tycho-inspired generative visuals and music",
+  "version": "1.1.0",
+  "description": "Real-time ambient visualizer for Claude Code tool events — Tycho-inspired generative visuals and music. Works with CLI and Desktop Co-Work sessions.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
@@ -9,8 +9,13 @@
   "engines": {
     "node": ">=18.0.0"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wretcher207/claude-visualizer.git"
+  },
   "keywords": [
     "claude-code",
+    "claude-cowork",
     "visualizer",
     "ambient",
     "generative-music",

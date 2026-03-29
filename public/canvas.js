@@ -69,10 +69,10 @@
   ];
   let idleParticles = [];
 
-  function createIdleParticle(fullRandom) {
+  function createIdleParticle() {
     return {
-      x: fullRandom ? Math.random() * (W || 800) : Math.random() * (W || 800),
-      y: fullRandom ? Math.random() * (H || 600) : Math.random() * (H || 600),
+      x: Math.random() * (W || 800),
+      y: Math.random() * (H || 600),
       vx: (Math.random() - 0.5) * 0.1,
       vy: (Math.random() - 0.5) * 0.06,
       radius: 0.8 + Math.random() * 2.2,
@@ -86,7 +86,7 @@
   function resetIdleParticles() {
     if (idleParticles.length === 0) {
       for (let i = 0; i < IDLE_COUNT; i++) {
-        idleParticles.push(createIdleParticle(true));
+        idleParticles.push(createIdleParticle());
       }
     } else {
       // Just update positions to fit new dimensions
