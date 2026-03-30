@@ -35,15 +35,15 @@ Add this to your Claude Code settings file (`~/.claude/settings.json`):
 ```json
 {
   "hooks": {
-    "PreToolUse": [{ "matcher": "", "hooks": [{ "type": "command", "command": "node /path/to/claude-visualizer/hook.js" }] }],
-    "PostToolUse": [{ "matcher": "", "hooks": [{ "type": "command", "command": "node /path/to/claude-visualizer/hook.js" }] }],
-    "PostToolUseFailure": [{ "matcher": "", "hooks": [{ "type": "command", "command": "node /path/to/claude-visualizer/hook.js" }] }],
-    "Notification": [{ "matcher": "", "hooks": [{ "type": "command", "command": "node /path/to/claude-visualizer/hook.js" }] }],
-    "Stop": [{ "matcher": "", "hooks": [{ "type": "command", "command": "node /path/to/claude-visualizer/hook.js" }] }],
-    "SubagentStart": [{ "matcher": "", "hooks": [{ "type": "command", "command": "node /path/to/claude-visualizer/hook.js" }] }],
-    "SubagentStop": [{ "matcher": "", "hooks": [{ "type": "command", "command": "node /path/to/claude-visualizer/hook.js" }] }],
-    "SessionStart": [{ "matcher": "", "hooks": [{ "type": "command", "command": "node /path/to/claude-visualizer/hook.js" }] }],
-    "SessionEnd": [{ "matcher": "", "hooks": [{ "type": "command", "command": "node /path/to/claude-visualizer/hook.js" }] }]
+    "PreToolUse": [{ "hooks": [{ "type": "command", "command": "node /path/to/claude-visualizer/hook.js", "async": true }] }],
+    "PostToolUse": [{ "hooks": [{ "type": "command", "command": "node /path/to/claude-visualizer/hook.js", "async": true }] }],
+    "PostToolUseFailure": [{ "hooks": [{ "type": "command", "command": "node /path/to/claude-visualizer/hook.js", "async": true }] }],
+    "Notification": [{ "hooks": [{ "type": "command", "command": "node /path/to/claude-visualizer/hook.js", "async": true }] }],
+    "Stop": [{ "hooks": [{ "type": "command", "command": "node /path/to/claude-visualizer/hook.js", "async": true }] }],
+    "SubagentStart": [{ "hooks": [{ "type": "command", "command": "node /path/to/claude-visualizer/hook.js", "async": true }] }],
+    "SubagentStop": [{ "hooks": [{ "type": "command", "command": "node /path/to/claude-visualizer/hook.js", "async": true }] }],
+    "SessionStart": [{ "hooks": [{ "type": "command", "command": "node /path/to/claude-visualizer/hook.js", "async": true }] }],
+    "SessionEnd": [{ "hooks": [{ "type": "command", "command": "node /path/to/claude-visualizer/hook.js", "async": true }] }]
   }
 }
 ```
@@ -52,20 +52,22 @@ Add this to your Claude Code settings file (`~/.claude/settings.json`):
 ```json
 {
   "hooks": {
-    "PreToolUse": [{ "matcher": "", "hooks": [{ "type": "command", "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\path\\to\\claude-visualizer\\hook.js\"" }] }],
-    "PostToolUse": [{ "matcher": "", "hooks": [{ "type": "command", "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\path\\to\\claude-visualizer\\hook.js\"" }] }],
-    "PostToolUseFailure": [{ "matcher": "", "hooks": [{ "type": "command", "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\path\\to\\claude-visualizer\\hook.js\"" }] }],
-    "Notification": [{ "matcher": "", "hooks": [{ "type": "command", "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\path\\to\\claude-visualizer\\hook.js\"" }] }],
-    "Stop": [{ "matcher": "", "hooks": [{ "type": "command", "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\path\\to\\claude-visualizer\\hook.js\"" }] }],
-    "SubagentStart": [{ "matcher": "", "hooks": [{ "type": "command", "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\path\\to\\claude-visualizer\\hook.js\"" }] }],
-    "SubagentStop": [{ "matcher": "", "hooks": [{ "type": "command", "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\path\\to\\claude-visualizer\\hook.js\"" }] }],
-    "SessionStart": [{ "matcher": "", "hooks": [{ "type": "command", "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\path\\to\\claude-visualizer\\hook.js\"" }] }],
-    "SessionEnd": [{ "matcher": "", "hooks": [{ "type": "command", "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\path\\to\\claude-visualizer\\hook.js\"" }] }]
+    "PreToolUse": [{ "hooks": [{ "type": "command", "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\path\\to\\claude-visualizer\\hook.js\"", "async": true }] }],
+    "PostToolUse": [{ "hooks": [{ "type": "command", "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\path\\to\\claude-visualizer\\hook.js\"", "async": true }] }],
+    "PostToolUseFailure": [{ "hooks": [{ "type": "command", "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\path\\to\\claude-visualizer\\hook.js\"", "async": true }] }],
+    "Notification": [{ "hooks": [{ "type": "command", "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\path\\to\\claude-visualizer\\hook.js\"", "async": true }] }],
+    "Stop": [{ "hooks": [{ "type": "command", "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\path\\to\\claude-visualizer\\hook.js\"", "async": true }] }],
+    "SubagentStart": [{ "hooks": [{ "type": "command", "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\path\\to\\claude-visualizer\\hook.js\"", "async": true }] }],
+    "SubagentStop": [{ "hooks": [{ "type": "command", "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\path\\to\\claude-visualizer\\hook.js\"", "async": true }] }],
+    "SessionStart": [{ "hooks": [{ "type": "command", "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\path\\to\\claude-visualizer\\hook.js\"", "async": true }] }],
+    "SessionEnd": [{ "hooks": [{ "type": "command", "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\path\\to\\claude-visualizer\\hook.js\"", "async": true }] }]
   }
 }
 ```
 
 Replace the paths with wherever you cloned the repo.
+
+> **Important:** The `"async": true` flag is required. Without it, Claude Code waits for Node.js to start on every single tool call, which causes intermittent terminal freezes. If you set this up before this note was added, update your hooks to include `"async": true`.
 
 > **Note:** If you already have hooks in your settings.json, add the visualizer entries alongside them in each event array.
 
