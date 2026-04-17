@@ -4,6 +4,8 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const analytics = require('./lib/analytics');
+const tokens = require('./lib/tokens');
 
 const PORT = 8765;
 const PUBLIC_DIR = path.join(__dirname, 'public');
@@ -172,6 +174,39 @@ function handleEvent(req, res) {
   });
 }
 
+// GET /api/analytics/* — historical dashboard data
+const ANALYTICS_ROUTES = {
+  '/api/analytics/summary':  (q) => analytics.getSummary(q.get('days')),
+  '/api/analytics/tools':    (q) => analytics.getToolBreakdown(q.get('days')),
+  '/api/analytics/sessions': (q) => analytics.getSessions(q.get('days'), q.get('limit')),
+  '/api/analytics/heatmap':  (q) => analytics.getHeatmap(q.get('days')),
+  '/api/analytics/errors':   (q) => analytics.getErrors(q.get('days'), q.get('limit')),
+  '/api/analytics/timeline': (q) => analytics.getTimeline(q.get('date')),
+  '/api/tokens/summary':     ()  => tokens.getSummary(),
+  '/api/tokens/comparisons': ()  => tokens.getComparisons(),
+  '/api/tokens/by-date':     (q) => tokens.getByDate(q.get('days')),
+  '/api/tokens/sessions':    (q) => tokens.getTopSessions(q.get('limit')),
+};
+
+function sendJSON(res, status, body) {
+  res.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+  res.end(JSON.stringify(body));
+}
+
+async function handleAnalytics(req, res, url) {
+  const handler = ANALYTICS_ROUTES[url.pathname];
+  if (!handler) {
+    sendJSON(res, 404, { ok: false, error: 'unknown analytics endpoint' });
+    return;
+  }
+  try {
+    const data = await handler(url.searchParams);
+    sendJSON(res, 200, { ok: true, data });
+  } catch (err) {
+    sendJSON(res, 500, { ok: false, error: err && err.message ? err.message : 'analytics error' });
+  }
+}
+
 // GET /stream — SSE endpoint for browser clients
 function handleSSE(req, res) {
   res.writeHead(200, {
@@ -228,8 +263,9 @@ function handleStatic(req, res) {
 // ---------------------------------------------------------------------------
 const server = http.createServer((req, res) => {
   if (req.method === 'POST' && req.url === '/event') return handleEvent(req, res);
-  // FIX: use pathname comparison so SSE reconnects with query params still work
-  if (req.method === 'GET' && new URL(req.url, 'http://localhost').pathname === '/stream') return handleSSE(req, res);
+  const url = new URL(req.url, 'http://localhost');
+  if (req.method === 'GET' && url.pathname === '/stream') return handleSSE(req, res);
+  if (req.method === 'GET' && (url.pathname.startsWith('/api/analytics/') || url.pathname.startsWith('/api/tokens/'))) return handleAnalytics(req, res, url);
   return handleStatic(req, res);
 });
 

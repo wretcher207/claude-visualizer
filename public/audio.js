@@ -1,12 +1,5 @@
-/* ==========================================================================
-   Audio Engine — Generative ambient music in F# major pentatonic
-   Inspired by Tycho's "A Walk" — warm, dreamy, exploratory
-
-   Each tool event triggers a mini melodic phrase, not just a single note.
-   Notes cascade, echo, and layer into evolving generative music.
-   F# pentatonic means everything harmonizes no matter what — you literally
-   cannot hit a wrong note.
-   ========================================================================== */
+/* Generative ambient audio in F# major pentatonic.
+   Each tool event plays a short melodic phrase through reverb and delay. */
 
 (function () {
   'use strict';
@@ -14,17 +7,14 @@
   // ---- State ----
   let ctx = null;
   let masterGain = null;
-  let padGain = null;
   let delayNode = null;
   let delayFeedback = null;
   let reverbNode = null;
   let isMuted = false;
   let isInitialized = false;
-  let padOscillators = [];
 
   // Master volume
   const MASTER_VOLUME = 0.30;
-  const PAD_VOLUME = 0.05;
 
   // ---- F# Major Pentatonic Scale ----
   // Full palette of notes across 3 octaves to draw from
@@ -113,8 +103,6 @@
     return impulse;
   }
 
-  // ---- Create stereo delay (echo) ----
-  // Gives that spacious Tycho delay-tail feel
   function createDelay() {
     delayNode = ctx.createDelay(2.0);
     delayNode.delayTime.value = 0.375; // Dotted eighth feel at ~80bpm
@@ -135,54 +123,6 @@
 
     // Output the delay to master
     delayFilter.connect(masterGain);
-  }
-
-  // ---- Warm pad drone ----
-  function startPad() {
-    if (!ctx || padOscillators.length > 0) return;
-
-    padGain = ctx.createGain();
-    padGain.gain.value = isMuted ? 0 : PAD_VOLUME;
-    padGain.connect(masterGain);
-
-    // F#2 fundamental
-    const osc1 = ctx.createOscillator();
-    osc1.type = 'sine';
-    osc1.frequency.value = 92.50;
-    osc1.connect(padGain);
-    osc1.start();
-
-    // C#3 — perfect fifth above
-    const osc2 = ctx.createOscillator();
-    osc2.type = 'sine';
-    osc2.frequency.value = 138.59;
-    const osc2Gain = ctx.createGain();
-    osc2Gain.gain.value = 0.35;
-    osc2.connect(osc2Gain);
-    osc2Gain.connect(padGain);
-    osc2.start();
-
-    // F#3 — octave above fundamental, very quiet
-    const osc3 = ctx.createOscillator();
-    osc3.type = 'sine';
-    osc3.frequency.value = 185.00;
-    const osc3Gain = ctx.createGain();
-    osc3Gain.gain.value = 0.15;
-    osc3.connect(osc3Gain);
-    osc3Gain.connect(padGain);
-    osc3.start();
-
-    // Breathing LFO
-    const lfo = ctx.createOscillator();
-    lfo.type = 'sine';
-    lfo.frequency.value = 0.06; // One breath every ~16 seconds
-    const lfoGain = ctx.createGain();
-    lfoGain.gain.value = PAD_VOLUME * 0.35;
-    lfo.connect(lfoGain);
-    lfoGain.connect(padGain.gain);
-    lfo.start();
-
-    padOscillators = [osc1, osc2, osc3, lfo];
   }
 
   // ---- Play a single voice (one note with harmonics + bass octave + envelope) ----
@@ -418,9 +358,6 @@
     // Delay — warm echoes
     createDelay();
 
-    // Pad drone
-    startPad();
-
     isInitialized = true;
   }
 
@@ -440,10 +377,8 @@
       const now = ctx.currentTime;
       if (isMuted) {
         masterGain.gain.linearRampToValueAtTime(0, now + 0.5);
-        if (padGain) padGain.gain.linearRampToValueAtTime(0, now + 0.5);
       } else {
         masterGain.gain.linearRampToValueAtTime(MASTER_VOLUME, now + 0.5);
-        if (padGain) padGain.gain.linearRampToValueAtTime(PAD_VOLUME, now + 0.5);
       }
 
       return isMuted;
