@@ -20,6 +20,8 @@
     { key: 'mcpLabels',       name: 'MCP Server Labels', desc: 'Show which server a tool comes from',  defaultOn: true },
     { key: 'resultPreviews',  name: 'Result Previews',   desc: 'Smart first-line result summaries',    defaultOn: true },
     { key: 'workingDirectory',name: 'Working Directory',  desc: 'Show the active project path',        defaultOn: false },
+    { key: 'failureCount',    name: 'Failure Counter',   desc: 'Count failed tool calls this session', defaultOn: true },
+    { key: 'topTools',        name: 'Top Tools',         desc: 'Top 5 tools used this session',        defaultOn: true },
   ];
 
   const STORAGE_KEY = 'claude-visualizer-settings';
@@ -100,8 +102,11 @@
 
   // React to setting changes that have immediate visual effects
   function onSettingChanged(key) {
-    if (key === 'sessionStats') {
+    if (key === 'sessionStats' || key === 'failureCount') {
       updateSessionStatsDisplay();
+    }
+    if (key === 'topTools') {
+      renderTopTools();
     }
   }
 
@@ -324,17 +329,22 @@
   let toolSequence = 0;
   let sessionToolCount = 0;
   let sessionTotalDuration = 0;
+  let sessionFailureCount = 0;
   let sessionStartTime = null;
   let sessionClockInterval = null;
+  const sessionByTool = new Map();
 
   function resetSessionStats() {
     toolSequence = 0;
     sessionToolCount = 0;
     sessionTotalDuration = 0;
+    sessionFailureCount = 0;
+    sessionByTool.clear();
     sessionStartTime = Date.now();
     if (sessionClockInterval) clearInterval(sessionClockInterval);
     sessionClockInterval = setInterval(updateSessionStatsDisplay, 1000);
     updateSessionStatsDisplay();
+    renderTopTools();
   }
 
   function updateSessionStatsDisplay() {
@@ -351,6 +361,7 @@
     const countEl = document.getElementById('stat-tool-count');
     const timeEl = document.getElementById('stat-total-time');
     const clockEl = document.getElementById('stat-session-clock');
+    const failEl = document.getElementById('stat-failures');
 
     if (countEl) countEl.textContent = sessionToolCount + ' tool' + (sessionToolCount !== 1 ? 's' : '');
     if (timeEl) timeEl.textContent = formatDuration(sessionTotalDuration) + ' total';
@@ -361,6 +372,75 @@
       const secs = Math.floor((elapsed % 60000) / 1000);
       clockEl.textContent = String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
     }
+
+    // Failure counter — gated by its own setting, hidden when off
+    bar.classList.toggle('show-failures', !!settings.failureCount);
+    if (failEl) {
+      failEl.textContent = sessionFailureCount + ' fail' + (sessionFailureCount !== 1 ? 's' : '');
+      failEl.classList.toggle('has-failures', sessionFailureCount > 0);
+    }
+  }
+
+  // ===========================================================================
+  // TOP TOOLS PANEL
+  // ===========================================================================
+
+  function renderTopTools() {
+    const panel = document.getElementById('top-tools-panel');
+    if (!panel) return;
+
+    if (!settings.topTools || sessionByTool.size === 0) {
+      panel.classList.remove('visible');
+      panel.innerHTML = '';
+      return;
+    }
+
+    const entries = Array.from(sessionByTool.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+    const max = entries[0][1];
+
+    panel.innerHTML = '';
+    const title = document.createElement('div');
+    title.className = 'top-tools-title';
+    title.textContent = 'Top tools this session';
+    panel.appendChild(title);
+
+    for (const [name, count] of entries) {
+      const row = document.createElement('div');
+      row.className = 'top-tool-row';
+
+      const color = getToolColor(name);
+      const dot = document.createElement('span');
+      dot.className = 'tool-dot';
+      dot.style.background = color;
+
+      const bar = document.createElement('div');
+      bar.className = 'top-tool-bar';
+
+      const fill = document.createElement('div');
+      fill.className = 'top-tool-fill';
+      fill.style.background = color;
+      fill.style.width = (count / max) * 100 + '%';
+
+      const nameEl = document.createElement('span');
+      nameEl.className = 'top-tool-name';
+      nameEl.textContent = cleanToolName(name);
+
+      bar.appendChild(fill);
+      bar.appendChild(nameEl);
+
+      const countEl = document.createElement('span');
+      countEl.className = 'top-tool-count';
+      countEl.textContent = String(count);
+
+      row.appendChild(dot);
+      row.appendChild(bar);
+      row.appendChild(countEl);
+      panel.appendChild(row);
+    }
+
+    panel.classList.add('visible');
   }
 
   // ===========================================================================
@@ -569,7 +649,11 @@
     // Track session stats
     if (event.event === 'PreToolUse') {
       sessionToolCount++;
+      if (event.tool_name) {
+        sessionByTool.set(event.tool_name, (sessionByTool.get(event.tool_name) || 0) + 1);
+      }
       updateSessionStatsDisplay();
+      renderTopTools();
     }
 
     return card;
@@ -592,6 +676,8 @@
     // Mark failures
     if (event.event === 'PostToolUseFailure') {
       card.classList.add('failure');
+      sessionFailureCount++;
+      updateSessionStatsDisplay();
     }
 
     // Update duration badge
@@ -852,6 +938,7 @@
 
   buildSettingsPanel();
   updateSessionStatsDisplay();
+  renderTopTools();
   connect();
 
 })();

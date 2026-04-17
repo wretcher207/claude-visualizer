@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Visualizer — Analytics</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="analytics.css">
+</head>
+<body class="analytics-body">
+
+  <!-- Same ambient backdrop as the main page -->
+  <div id="bg-layers">
+    <div class="bg-layer" id="bg-atmosphere"></div>
+    <div class="bg-layer" id="bg-sun-glow"></div>
+    <div class="bg-layer" id="bg-sun-core"></div>
+    <div class="bg-layer bg-halo" id="bg-halo-1"></div>
+    <div class="bg-layer bg-halo" id="bg-halo-2"></div>
+    <div class="bg-layer bg-halo" id="bg-halo-3"></div>
+    <div class="bg-layer" id="bg-leak-tr"></div>
+    <div class="bg-layer" id="bg-leak-bl"></div>
+    <div class="bg-layer" id="bg-band-1"></div>
+    <div class="bg-layer" id="bg-band-2"></div>
+    <div class="bg-layer" id="bg-triangle"></div>
+    <div class="bg-layer" id="bg-ground-far"></div>
+    <div class="bg-layer" id="bg-ground-mid"></div>
+    <div class="bg-layer" id="bg-ground-near"></div>
+    <div class="bg-layer" id="bg-horizon-line"></div>
+    <div class="bg-layer" id="bg-haze-top"></div>
+    <div class="bg-layer" id="bg-underglow"></div>
+  </div>
+
+  <div id="grain-overlay"></div>
+
+  <main class="dash">
+
+    <header class="dash-header">
+      <div class="dash-title">
+        <span class="dash-eyebrow">Claude Visualizer</span>
+        <h1>Analytics</h1>
+      </div>
+      <div class="dash-controls">
+        <div class="range-selector" id="range-selector" role="group" aria-label="Time range">
+          <button class="range-btn" data-days="7">7d</button>
+          <button class="range-btn active" data-days="30">30d</button>
+          <button class="range-btn" data-days="90">90d</button>
+          <button class="range-btn" data-days="365">1y</button>
+        </div>
+        <a class="back-link" href="/">&larr; Live View</a>
+      </div>
+    </header>
+
+    <!-- ===== TOKENS ===== -->
+    <section class="tokens-hero chart-card wide">
+      <div class="tokens-hero-head">
+        <span class="chart-hint">Lifetime tokens</span>
+        <span class="tokens-hero-sub" id="tokens-hero-sub">&nbsp;</span>
+      </div>
+      <div class="tokens-hero-number" id="tokens-hero-number">&mdash;</div>
+      <div class="tokens-hero-equiv" id="tokens-hero-equiv">&nbsp;</div>
+      <div class="tokens-mix" id="tokens-mix"></div>
+    </section>
+
+    <section class="tile-row tokens-windows">
+      <div class="metric-tile" data-tile="last7">
+        <span class="metric-label">Last 7 days</span>
+        <span class="metric-value" id="tile-last7">&mdash;</span>
+        <span class="metric-sub" id="tile-last7-sub">&nbsp;</span>
+      </div>
+      <div class="metric-tile" data-tile="last30">
+        <span class="metric-label">Last 30 days</span>
+        <span class="metric-value" id="tile-last30">&mdash;</span>
+        <span class="metric-sub" id="tile-last30-sub">&nbsp;</span>
+      </div>
+      <div class="metric-tile" data-tile="biggestDay">
+        <span class="metric-label">Biggest day</span>
+        <span class="metric-value" id="tile-biggest-day">&mdash;</span>
+        <span class="metric-sub" id="tile-biggest-day-sub">&nbsp;</span>
+      </div>
+      <div class="metric-tile" data-tile="biggestSession">
+        <span class="metric-label">Biggest session</span>
+        <span class="metric-value" id="tile-biggest-session">&mdash;</span>
+        <span class="metric-sub" id="tile-biggest-session-sub">&nbsp;</span>
+      </div>
+    </section>
+
+    <section class="chart-card wide">
+      <div class="chart-head">
+        <h2>Token flow</h2>
+        <span class="chart-hint">Per day, stacked by type</span>
+      </div>
+      <div class="chart-body">
+        <canvas id="tokens-canvas"></canvas>
+        <div class="chart-tooltip" id="tokens-tooltip"></div>
+        <div class="tokens-legend">
+          <span><span class="legend-swatch" style="background:#ff866d"></span>Output</span>
+          <span><span class="legend-swatch" style="background:#D4A017"></span>Input</span>
+          <span><span class="legend-swatch" style="background:#6B8E5A"></span>Cache read</span>
+          <span><span class="legend-swatch" style="background:#4A8A7A"></span>Cache create</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="dash-row">
+      <div class="chart-card">
+        <div class="chart-head">
+          <h2>By project</h2>
+          <span class="chart-hint">Top folders by token volume</span>
+        </div>
+        <div class="chart-body">
+          <div id="tokens-by-cwd"></div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-head">
+          <h2>By model</h2>
+          <span class="chart-hint">Where the work goes</span>
+        </div>
+        <div class="chart-body">
+          <div id="tokens-by-model"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="chart-card wide">
+      <div class="chart-head">
+        <h2>Heaviest sessions</h2>
+        <span class="chart-hint">Ranked by total tokens</span>
+      </div>
+      <div class="chart-body">
+        <div class="table-wrap">
+          <table class="sessions-table" id="token-sessions-table">
+            <thead>
+              <tr>
+                <th>Started</th>
+                <th>Project</th>
+                <th class="num">Messages</th>
+                <th class="num">Output</th>
+                <th class="num">Cache read</th>
+                <th class="num">Total</th>
+              </tr>
+            </thead>
+            <tbody id="token-sessions-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="tile-row" id="tile-row">
+      <div class="metric-tile" data-tile="tools">
+        <span class="metric-label">Tool calls</span>
+        <span class="metric-value" id="tile-tools">&mdash;</span>
+        <span class="metric-sub" id="tile-tools-sub">&nbsp;</span>
+      </div>
+      <div class="metric-tile" data-tile="sessions">
+        <span class="metric-label">Sessions</span>
+        <span class="metric-value" id="tile-sessions">&mdash;</span>
+        <span class="metric-sub" id="tile-sessions-sub">&nbsp;</span>
+      </div>
+      <div class="metric-tile" data-tile="duration">
+        <span class="metric-label">Tool time</span>
+        <span class="metric-value" id="tile-duration">&mdash;</span>
+        <span class="metric-sub" id="tile-duration-sub">&nbsp;</span>
+      </div>
+      <div class="metric-tile" data-tile="failures">
+        <span class="metric-label">Failure rate</span>
+        <span class="metric-value" id="tile-failures">&mdash;</span>
+        <span class="metric-sub" id="tile-failures-sub">&nbsp;</span>
+      </div>
+    </section>
+
+    <!-- Activity line chart -->
+    <section class="chart-card wide">
+      <div class="chart-head">
+        <h2>Activity</h2>
+        <span class="chart-hint">Tool calls per day</span>
+      </div>
+      <div class="chart-body">
+        <canvas id="activity-canvas"></canvas>
+        <div class="chart-tooltip" id="activity-tooltip"></div>
+      </div>
+    </section>
+
+    <!-- Two-column row: leaderboard + heatmap -->
+    <section class="dash-row">
+      <div class="chart-card">
+        <div class="chart-head">
+          <h2>Tools</h2>
+          <span class="chart-hint">Most used, top 15</span>
+        </div>
+        <div class="chart-body">
+          <div id="tool-leaderboard"></div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-head">
+          <h2>When you work</h2>
+          <span class="chart-hint">Day &times; hour</span>
+        </div>
+        <div class="chart-body">
+          <div id="heatmap"></div>
+          <div class="heatmap-legend">
+            <span>quiet</span>
+            <span class="heatmap-gradient"></span>
+            <span>busy</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sessions -->
+    <section class="chart-card wide">
+      <div class="chart-head">
+        <h2>Recent sessions</h2>
+        <span class="chart-hint" id="sessions-hint">&nbsp;</span>
+      </div>
+      <div class="chart-body">
+        <div class="table-wrap">
+          <table class="sessions-table" id="sessions-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Started</th>
+                <th>Duration</th>
+                <th class="num">Tools</th>
+                <th class="num">Fails</th>
+                <th>Top</th>
+                <th>Project</th>
+              </tr>
+            </thead>
+            <tbody id="sessions-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Errors -->
+    <section class="chart-card wide">
+      <div class="chart-head">
+        <h2>Recent failures</h2>
+        <span class="chart-hint" id="errors-hint">&nbsp;</span>
+      </div>
+      <div class="chart-body">
+        <div id="errors-list"></div>
+      </div>
+    </section>
+
+    <footer class="dash-footer">
+      Claude Visualizer &middot; <span id="footer-range"></span>
+    </footer>
+
+  </main>
+
+  <script src="analytics.js"></script>
+</body>
+</html>

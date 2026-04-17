@@ -46,6 +46,7 @@
       </button>
     </div>
     <div id="canvas-title">Claude Flow</div>
+    <a id="analytics-link" href="/analytics.html" title="Historical analytics dashboard">Analytics &rarr;</a>
   </div>
 
   <!-- Right: technical sidebar (30%) -->
@@ -68,7 +69,12 @@
       <span id="stat-total-time">0s total</span>
       <span class="stat-dot"></span>
       <span id="stat-session-clock">--:--</span>
+      <span class="stat-dot" id="stat-failures-dot"></span>
+      <span id="stat-failures">0 fails</span>
     </div>
+
+    <!-- Top tools panel -->
+    <div id="top-tools-panel"></div>
 
     <!-- Event feed -->
     <div id="event-feed">
