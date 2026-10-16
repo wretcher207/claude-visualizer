@@ -1,0 +1,25 @@
+[package]
+name = "prompt-is-prologue"
+version = "0.1.0"
+description = "Ambient scenes and music that follow Claude Code while it works"
+authors = ["David Russell / Dead Pixel Design"]
+license = "MIT"
+edition = "2021"
+
+[lib]
+# The `_lib` suffix may seem redundant but it is necessary
+# to make the lib name unique and wouldn't conflict with the bin name.
+# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
+name = "prompt_is_prologue_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1

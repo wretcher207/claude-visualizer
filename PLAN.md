@@ -1,6 +1,6 @@
 # Prompt Is Prologue: the plan
 
-Locked 2026-10-15. Every decision is made and the plan has been reviewed. Phase 1 (Sea and demo mode in the browser) was built 2026-10-15 and is waiting on David's listen; see `HANDOFF.md`.
+Locked 2026-10-15. Phase 1 (Sea and demo mode in the browser) is built and approved. Phase 2's six open choices were settled with David on 2026-10-15, and he approved its build order below the same day. Current state is in `HANDOFF.md`.
 
 ## What it is
 
@@ -68,22 +68,36 @@ Claude Code now measures each tool's run time itself, so timings no longer inclu
 - **One rule holds it together:** all the art and sound live in one plain web layer with no framework. The app is a thin shell around it. The exact same code runs inside the app and on the demo web page.
 - **The app:** Tauri, the same thing lightcut is built on. It has a real tray icon on all three systems, needs no Node install for anyone using it, and starts quietly at login so it's always in the tray. Tauri is lighter than Electron, but not lighter than a browser tab. What actually fixes "heavy" is the frame budget and pausing when hidden.
 - **The listener:** the app itself receives Claude's events, only from your own computer, and only with a secret key made at install.
-- **Connecting to Claude:** on first run the app adds its own hook entries to Claude Code's settings file. It leaves any hooks you already have alone and shows you exactly what it added. Uninstalling removes exactly those entries and nothing else.
-- **Never slows Claude down:** each hook gives up after about a second. If the app is closed or stuck, the event is simply dropped. One detail: Claude Code can't send its session-start event this way, so the app doesn't depend on it. A new traveler appears on the first event from a session it hasn't seen yet.
+- **Connecting to Claude:** on first run the app adds its own hook entries to Claude Code's settings file. It leaves any hooks you already have alone and shows you exactly what it added. Uninstalling, or Disconnect in the tray menu, removes exactly those entries and nothing else.
+- **Never slows Claude down:** Claude waits for the app's answer on every event, so the app answers first and draws after. Each hook gives up after a second, so an app that's stuck costs Claude at most a second per event, and when the app is closed Claude's attempt fails in about 5 milliseconds (measured on David's PC). One detail: Claude Code can't send its session-start event this way, so the app doesn't depend on it. A new traveler appears on the first event from a session it hasn't seen yet.
+- **Which sessions show up:** Claude Code on this computer, whether it runs in a terminal, in the Claude app's Code tab or in an editor. Cowork, SSH and cloud sessions don't, because they don't use this computer's Claude settings.
 - **The art:** drawn live in code, using a GPU canvas where it helps, with a frame budget. It pauses fully when the window is hidden.
 
 ## The order of work
 
 1. **Hear it first.** Demo mode, which plays a fake Claude session, plus the **Sea** vibe finished: scene, matched sound, idle pad, moments, travelers and the journey. All of it runs in a plain browser page, with no app shell yet. You hear the direction within days, and this is where we find out if it feels right. Measure what made the old one heavy before building the look.
-2. **Make it an app.** The Tauri shell, tray icon, start at login, secure listener, the automatic hook setup and uninstall, and the removal of the old server, analytics and logging.
+2. **Make it an app.** The Tauri shell, tray icon, start at login, secure listener, the automatic hook setup and uninstall, and the removal of the old server, analytics and logging. The step-by-step order is in the next section.
 3. **The other three vibes:** Road, Dune and Sun.
 4. **Release.** Rename the repo, write a new README with a short video at the top (with sound), add a LICENSE file and topics, set up builds for all three systems, and launch the demo web page. The demo page is the phase 1 build, so it costs almost nothing extra. The repo name loses the word "claude", which is what people search for, so "Claude Code" stays in the description and topics.
 
 Each phase ends with something you can open and hear.
 
+## Phase 2: the build order
+
+Ordered by risk, so the step most likely to change the plan comes first. Each step ends with a check, and the next step waits until it passes. Everything is built and checked on David's PC (Windows) first.
+
+1. **The app window.** A bare Tauri app, set up like lightcut, that opens the existing `web/` files unchanged. On David's PC, check four things: the poster Sea draws correctly, it stays inside the graphics budget (the browser tab used about 5% of the HD 530), the music keeps time when the window is hidden, and sound can start without a click. *Done when* all four pass. If one fails, it goes back to David before anything else, because music from the tray and starting at login depend on it.
+2. **The listener.** The app listens only on this computer (127.0.0.1), on one fixed port, and takes an event only if it carries the secret key made on first run. It answers a plain OK with nothing in it right away, from its own thread so a busy scene can't hold Claude up, and only then hands the event to the scene. It never answers with anything Claude could read as an instruction. It keeps only what the scene uses (which session, which event, which tool, how long it took) and drops the rest, including your prompts, file contents and command output. Nothing about Claude's work is written to disk. If something else is using the port, the app moves to a free one and updates its own hook entries. *Done when* a test sender makes boats appear, requests without the key or from a web page are refused, and the answer comes back within a few milliseconds even for a huge tool result.
+3. **The live scene.** `web/src/live.js` turns those events into the same shape the demo produces, so the world doesn't change. Add the guard from `HANDOFF.md` so a goodbye for a boat that was never drawn doesn't fire a sun burst. Play demo turns itself off when a real session shows up, and is unavailable while real boats are on the water. The demo web page keeps working with no app around it. *Done when* new tests for the live events pass, and events sent through the listener look and sound like the demo.
+4. **Connecting to Claude Code.** On first run the app backs up `~/.claude/settings.json`, then adds one entry for each of the 16 events the world uses, each with a one second limit and the key. SessionStart isn't one of them, since it can't send to the app. Every other hook stays exactly as it is (David has four of his own). A small panel over the scene lists what was added in plain words, with OK and Undo. If old Claude Visualizer hooks are there, the same panel lists them and offers to remove them. Disconnect removes exactly the app's own entries, found by an address only this app uses. If the settings file can't be read, the app changes nothing and says so. On Windows the uninstaller disconnects too. *Done when* real sessions in a terminal and in the Code tab show up as boats without being restarted, the entries survive while sessions are running, and Disconnect leaves the file the way it was.
+5. **The tray app.** The sun icon, and the menu from the phase 2 decisions below. On Windows a click opens the window and a right-click shows the menu. The window remembers its size and spot; double-click for full screen, Esc to leave. Closing it only hides it: drawing stops, the world and music keep going, and the music fades once the last boat has sailed home. Only one copy runs, and opening it again shows the window. It starts at login, quietly in the tray, and the menu switch turns that off. *Done when* David can close the window and still hear Claude work, and after a restart the sun is in the tray without him doing anything.
+6. **Remove the old Claude Visualizer.** Delete `server.js`, `hook.js`, `lib/` (analytics and tokens), `public/`, `start.bat`, `start.vbs` and the `npm start` script. The README gets a short note that the app is being rebuilt; the real README comes with the release. *Done when* nothing left in the repo listens on the network or saves Claude's activity.
+7. **Check it all.** Tests pass. Graphics and processor use are measured inside the app on the HD 530, with the window open and closed. Claude isn't slowed: tool calls are timed with the app running, closed and frozen (frozen costs at most the one second limit per event). Nothing about Claude's work is on disk. Then a real working session in a terminal and in the Code tab while David watches and listens. *Done when* David says it feels right.
+8. **Mac and Linux.** The code is written for all three systems from step 1, but building and testing on Mac and Linux needs those machines or GitHub's free build machines, and those need the branch pushed. David decides which when we get here. Linux is last: its tray icons can only show a menu, and some Linux desktops need an add-on before they show tray icons at all.
+
 ## Costs to know about now
 
-- **Mac:** a Mac app that isn't signed through Apple's developer program ($99 a year) shows scary warnings when people open it. We can ship unsigned with clear instructions at first, and decide later.
+- **Unsigned builds:** builds made on your own machine show no warnings, but unsigned copies people download do. Windows shows a blue "Windows protected your PC" box (More info, then Run anyway). On a Mac the first open is blocked until they click Open Anyway in System Settings, Privacy & Security. Signing removes both: the Mac side is Apple's developer program at $99 a year, and the Windows price gets checked at release. Decided: ship unsigned with plain install steps, and decide on signing at release.
 - **Linux:** the Linux build is its own small job, and graphics there can be weaker. It's doable, but it's the last one we polish.
 - **A demo web page** on Netlify, where people hear it in the browser before installing anything, is probably the biggest single thing for traction. It costs little because demo mode already exists by then.
 
@@ -106,3 +120,13 @@ Each phase ends with something you can open and hear.
   - **Dune:** a figure on the ridge, and subagents are the light streaks.
   - **Sun:** silhouettes on the beach.
 - **Demo web page:** part of the first release.
+
+### Phase 2 (settled with David 2026-10-15)
+
+- **Clicking the tray icon:** on Windows it opens a normal window that remembers its size and spot, and right-click shows the menu. On Mac and Linux a click shows the menu, with Open at the top, because that's how those systems work. Double-click the window for full screen, Esc to leave.
+- **Music with the window closed:** it keeps playing from the tray. Once the last boat has sailed home (20 minutes after Claude goes quiet), the music fades out, and it comes back when Claude starts working again. Sound can start by itself after login without the window being opened.
+- **Tray menu:** Open, Mute, Play demo, Start at login, Disconnect from Claude Code, Quit. No Pause, since Mute and closing the window cover it. Disconnect is how Mac and Linux users remove the hooks, because those systems have no uninstaller.
+- **Tray icon:** the sun, a disc with one ring. The Mac menu bar gets a one-color version.
+- **Old Claude Visualizer hooks:** the app finds them, shows them, and removes them only if the person says yes. David's own settings have none.
+- **Demo in the app:** it stays in the tray menu and turns itself off when a real Claude session shows up, so fake boats never mix with real work.
+- **Signing:** ship unsigned with plain install steps, and decide at release.

@@ -5,3 +5,7 @@ logs/
 Thumbs.db
 .claude/
 Visualizer_art/
+
+# Rust / Tauri
+src-tauri/target/
+src-tauri/gen/

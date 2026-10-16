@@ -4,7 +4,11 @@
   "description": "Real-time ambient visualizer for Claude Code tool events — Tycho-inspired generative visuals and music. Works with CLI and Desktop Co-Work sessions.",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "tauri": "tauri"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
   },
   "engines": {
     "node": ">=18.0.0"
