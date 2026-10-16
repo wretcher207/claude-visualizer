@@ -2,6 +2,8 @@
 
 Status 2026-10-15, late evening: phase 1 done and approved. Phase 2 is planned (`PLAN.md`), and its step 1, the app window, is built in `src-tauri/` and passed all four checks on David's PC (results below; check 3's truly hidden case was proven in a test copy that hides the webview, and the bare app needs that call in step 5). David saw and heard Sea in the app window and said it looks and sounds right, so step 1 is done; step 2 starts when he says go. Phase 1, the phase 2 plan and step 1 are committed locally on `prompt-is-prologue`, not pushed.
 
+Added 2026-10-16: mail bottles (David's email as messages in bottles on the Sea, plus a Mail panel) are designed and wait until phase 2 is done. Decisions are in `PLAN.md` under "Mail bottles"; the mail side lives outside this repo in `workspace/inbox-watcher`.
+
 ## Start here (fresh chat)
 
 1. Read `AGENTS.md` (rules), `PLAN.md` (the locked plan and every product decision), then this file.

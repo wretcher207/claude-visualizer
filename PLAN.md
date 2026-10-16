@@ -130,3 +130,15 @@ Ordered by risk, so the step most likely to change the plan comes first. Each st
 - **Old Claude Visualizer hooks:** the app finds them, shows them, and removes them only if the person says yes. David's own settings have none.
 - **Demo in the app:** it stays in the tray menu and turns itself off when a real Claude session shows up, so fake boats never mix with real work.
 - **Signing:** ship unsigned with plain install steps, and decide at release.
+
+## Mail bottles (settled with David 2026-10-16, built after phase 2)
+
+David's private inbox watcher (`workspace/inbox-watcher`, not part of this repo) sorts his email in the cloud. Prologue shows that mail in the Sea and in a Mail panel. It's David's own add-on: it stays off unless a local config points it at the watcher, and nothing about his mail, accounts or the watcher's address goes in this public repo.
+
+- **When:** after phase 2's tray app is done. Mail needs the app running anyway.
+- **What it is in the scene:** each email worth knowing about becomes a message in a bottle floating on the Sea. Ignored mail (ads, receipts) doesn't appear.
+- **Urgent vs FYI:** urgent bottles glow warm from inside, like the night boats, and call out with a repeating phrase until opened. FYI bottles are plain glass with a single soft sound when they arrive.
+- **Sound:** soft, low, glassy pulses that breathe with the pad, like a bottle bumping on the water. In F# major pentatonic and from the sounding chord like every other note, so the engine's out-of-key count stays at zero. The urgent call-out follows the waiting bell's rule: present but never a notification ding.
+- **Lifecycle:** a bottle drifts until it's opened, by clicking it or opening that email in the Mail panel. Then it uncorks and sinks away.
+- **Clicking a bottle:** a small panel slides in over the scene with that email's sender, subject and the sorter's note, plus a button to open the email (FYI) or the Claude session handling it (urgent).
+- **Mail panel:** today's FYI and urgent mail, newest first, each with the sorter's one-line note.
