@@ -1,13 +1,13 @@
 # Handoff
 
-Status 2026-10-17: phase 1 done and approved. Phase 2 step 1 (the app window) is done. Step 2, the listener, is built in `src-tauri/listener/` and wired into the app; its checks pass in a Linux build (below), and the Windows check on David's PC is still to do. The branch `prompt-is-prologue` is on GitHub.
+Status 2026-10-17: phase 1 done and approved. Phase 2 step 1 (the app window) is done. Steps 2 (the listener, `src-tauri/listener/`) and 3 (the live scene, `web/src/live.js`) are built, and their checks pass in a Linux build of the app (below); the Windows check on David's PC is still to do for both. The branch `prompt-is-prologue` is on GitHub, with draft PR #2 tracking it.
 
 Added 2026-10-16: mail bottles (David's email as messages in bottles on the Sea, plus a Mail panel) are designed and wait until phase 2 is done. Decisions are in `PLAN.md` under "Mail bottles"; the mail side lives outside this repo in `workspace/inbox-watcher`.
 
 ## Start here (fresh chat)
 
 1. Read `AGENTS.md` (rules), `PLAN.md` (the locked plan and every product decision), then this file.
-2. The next job is the Windows check of step 2 ("Phase 2 step 2: the listener" below), then step 3 of "Phase 2: the build order" in `PLAN.md` (the live scene). Step 1's results and the findings that change step 5 are in "Phase 2 step 1: the app window".
+2. The next job is the Windows check of steps 2 and 3 ("Phase 2 step 3: the live scene" below says how), then step 4 of "Phase 2: the build order" in `PLAN.md` (connecting to Claude Code). Step 1's results and the findings that change step 5 are in "Phase 2 step 1: the app window".
 3. To see the current state: double-click `web/open-demo.cmd` (or run `node web/serve.cjs`) and open http://127.0.0.1:5178/web/, then click once. In the Claude app, the workspace launch config has a `prologue` preview entry. 16x runs a day in minutes; D opens the debug panel with a time-of-day slider.
 4. To run the app: `npm install` once, then `npm run tauri build -- --no-bundle` and open `src-tauri/target/release/prompt-is-prologue.exe`.
 
@@ -15,6 +15,7 @@ Added 2026-10-16: mail bottles (David's email as messages in bottles on the Sea,
 
 - Branch `prompt-is-prologue`, from `main` at `ee9a4de`, pushed to GitHub with no PR. The repo is public: push only when David says so.
 - Phase 1 of `PLAN.md` is built in `web/`: the world model (`src/world.js`), the seeded demo day (`src/demo.js`), the shared audio engine (`src/audio/`), and the Sea vibe (`src/sea/`). Zero dependencies, no build step.
+- Phase 2 step 3 is built in `web/src/live.js` (see "Phase 2 step 3: the live scene").
 - Phase 2 step 2 is built in `src-tauri/listener/`, a small crate of its own (see "Phase 2 step 2: the listener").
 - Phase 2 step 1 is built in `src-tauri/`: a bare Tauri app that opens `web/` unchanged. The root `package.json` gained `@tauri-apps/cli` as a devDependency and a `tauri` script; `.gitignore` gained `src-tauri/target/` and `src-tauri/gen/`.
 - The old Claude Visualizer (`server.js`, `hook.js`, `lib/`, `public/`, `start.bat`, `start.vbs`) is untouched and still listens on the whole network if started. Phase 2 removes it. Don't run `npm start`.
@@ -69,6 +70,24 @@ Findings that change later steps:
 - `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS` is ignored once the app sets `additionalBrowserArgs`, so DevTools-protocol tests need a test build with `--remote-debugging-port=9222` merged in (`--config <file>`, a separate `CARGO_TARGET_DIR`). Never ship that. The step 1 helpers (DevTools client, window control, tick recorder, the hide-on-minimize `lib.rs`) are outside the repo in `C:\Users\wretc\AppData\Roaming\Claude\side-session-notes\local_bfa98c5b-a4f5-443c-a2ad-7ab0b5ccb613\prologue-step1-harness\`.
 - All of `web/` is embedded in the exe, including `test/`, `tools/`, `serve.cjs` and the photo scenes. Harmless; trim at release.
 
+## Phase 2 step 3: the live scene (built 2026-10-17)
+
+What's built:
+
+- `web/src/live.js`. `LiveSource` listens for the app's `prologue:hook` events through `window.__TAURI__` (`withGlobalTauri` is now on in `tauri.conf.json`), cuts each one down again the way the listener does, queues it, and hands it to the world on the same pump and with the same `pump(now, emit)` shape as `DemoSource`. `Sources` decides which feeds the world.
+- In the app the demo starts off and the scene starts by itself, without the intro or a click. On the web page (no `__TAURI__`) nothing changes: the demo plays after a click.
+- The demo turns itself off the moment a real session shows up; its boats get a SessionEnd and sail home into the sun. While a real boat is on the water, `prologue.setDemo(true)` refuses and returns false. Step 5's tray menu calls `prologue.setDemo`.
+- Real work runs at 1x: the speed buttons and the Demo badge only show while the demo plays, and 1/2/3 do nothing in live mode. The debug panel shows the source and the number of live sessions.
+- The guard from below: in `scene.js` only `traveler:new` makes a boat; any other moment, or a toll, for a boat that was never drawn is ignored.
+
+Checked in the cloud:
+
+- `node --test "web/test/*.test.js"`: 14 pass, 6 of them new in `test/live.test.js`. The main one runs three hours of demo through the live path (cut down to the listener's fields) beside the full payloads, and the world's moments match one for one, so the scene and sound get exactly what the demo gives them.
+- The real app (debug build, WebKitGTK on a virtual display): with nothing sent it opened straight onto an empty Sea; a node script posting two sessions through the listener put two paper boats on the water.
+- The web page in headless Chromium: the demo plays with its badge and speed buttons, a live event mid-demo turned it off (badge and speed gone, the demo boat sailed home, the real boat came out), and `setDemo(true)` refused. No console errors.
+
+Still to check on David's PC: build, start the exe, run `node src-tauri/tools/send-test.cjs` (all six lines pass, and a boat comes out and sails home), and listen: live boats should sound like the demo's. Not decided: demo work done in the app still counts toward the day's light after the demo stops; the next quiet stretch brings dawn as usual.
+
 ## Phase 2 step 2: the listener (built 2026-10-17)
 
 What's built: `src-tauri/listener/`, its own crate in a Cargo workspace with the app, so `cargo test -p prologue-listener` runs on any machine without a webview. Dependencies are serde, serde_json and getrandom, all already in the app's tree through Tauri. `src/lib.rs` starts it in `setup` and emits each kept event to the page as `prologue:hook`; nothing in `web/` listens yet (step 3).
@@ -84,7 +103,7 @@ Checked in the cloud, on Linux:
 - `cargo test -p prologue-listener --release`: 11 pass. A 40 MB tool result is answered in about 0.3 ms; a scene that takes 2 s per event doesn't slow the answer; no key, a wrong key, an Origin header, a preflight, another Host, another path or a GET are all refused; nothing is reachable on the machine's other addresses; the port moves when it's taken.
 - The whole app (debug build under a virtual display) started the listener and made `listener.json`; `node src-tauri/tools/send-test.cjs` passed five runs in a row, and with 47207 held by another program the app moved to 47208, saved it, and the sender followed.
 
-Still to check on David's PC: `npm run tauri build -- --no-bundle`, start the exe, then `node src-tauri/tools/send-test.cjs`; all six lines should pass. Watch for Windows Defender Firewall asking about the app: it shouldn't, since it listens only on 127.0.0.1. Boats appear from these events once step 3 adds the page side. Still unchecked anywhere: that Claude Code's own HTTP hooks send no Origin header and the Host as `127.0.0.1:<port>`; step 4 finds out with real sessions.
+Still to check on David's PC: `npm run tauri build -- --no-bundle`, start the exe, then `node src-tauri/tools/send-test.cjs`; all six lines should pass. Watch for Windows Defender Firewall asking about the app: it shouldn't, since it listens only on 127.0.0.1. Since step 3, these events also put a boat on the water. Still unchecked anywhere: that Claude Code's own HTTP hooks send no Origin header and the Host as `127.0.0.1:<port>`; step 4 finds out with real sessions.
 
 ## Phase 2 technical notes
 
@@ -103,9 +122,9 @@ Still to check on David's PC: `npm run tauri build -- --no-bundle`, start the ex
 - Old Claude Visualizer hooks are command hooks that run `hook.js` from a `claude-visualizer` folder, as the old README set them up; that script posted to port 8765. Match on that, show the entries, and remove them only on a yes.
 - The app's own entries: one per event below, each `{"type": "http", "url": "http://127.0.0.1:<port>/prompt-is-prologue/v1/hook", "timeout": 1, "headers": {"x-prologue-key": "<key>"}}`, with the port and key from `listener.json`. Find them by that path, so a port change can rewrite them.
 - Events the world handles: UserPromptSubmit, PreToolUse, PostToolUse, PostToolUseFailure, PermissionRequest, PermissionDenied, Notification, Elicitation, ElicitationResult, SubagentStart, SubagentStop, PreCompact, PostCompact, Stop, StopFailure, SessionEnd.
-- Tauri notes. Checked in step 1: `additionalBrowserArgs` with the autoplay flag lets sound start without a click, and it replaces wry's default arguments, so they're carried over; the ticker's `blob:` worker runs under the CSP (`worker-src blob:`); the page only counts as hidden when the webview is hidden. Still to do: set `withGlobalTauri` so `web/` can listen for the app's events without an npm package, and have `web/` pick the live source when `window.__TAURI__` exists (step 3). Full screen may need Tauri's window call instead of the page's. Linux has no tray click events (menu only). On Mac the icon should be a template image, and App Nap may slow a hidden app; check there. Windows uninstall cleanup can run from an NSIS pre-uninstall hook.
-- Wiring: `main.js` creates `DemoSource`. Phase 2 adds a live source (for example `src/live.js`) fed by the Tauri listener, with demo as a tray choice. The web layer stays framework-free so the same files ship in the app and on the demo page.
-- Guard needed: the scene's `boatFor()` creates a boat for any moment that names a traveler, including `traveler:gone` or a toll for a session it never drew. Harmless in the demo; live, it could fire a sun burst for a boat that never appeared.
+- Tauri notes. Checked in step 1: `additionalBrowserArgs` with the autoplay flag lets sound start without a click, and it replaces wry's default arguments, so they're carried over; the ticker's `blob:` worker runs under the CSP (`worker-src blob:`); the page only counts as hidden when the webview is hidden. `withGlobalTauri` is on, and `web/` picks the live source when `window.__TAURI__` exists (step 3). Still to do: full screen may need Tauri's window call instead of the page's. Linux has no tray click events (menu only). On Mac the icon should be a template image, and App Nap may slow a hidden app; check there. Windows uninstall cleanup can run from an NSIS pre-uninstall hook.
+- Wiring: `main.js` creates `DemoSource` and `LiveSource` and lets `Sources` (in `src/live.js`) choose between them, with demo as a tray choice. The web layer stays framework-free so the same files ship in the app and on the demo page.
+- Guard (added in step 3): the scene's `boatFor()` used to create a boat for any moment that named a traveler, including `traveler:gone` or a toll for a session it never drew. Now only `traveler:new` makes one.
 - `src-tauri/` follows `workspace/lightcut`'s setup. Rendering in WebView2 on Windows is checked (step 1); WebKitGTK on Linux and WKWebView on Mac are untested.
 - Background timers: inside WebView2 the worker ticker held 20 ticks a second for 6.5 minutes with the page hidden (step 1).
 

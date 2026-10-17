@@ -7,6 +7,7 @@ Ambient scenes and music that follow Claude Code while it works. Each running se
 - `web/` is the new project: a plain web layer with no framework and no dependencies, written as ES modules. The same files will run inside the Tauri app (phase 2) and on the public demo page.
   - `src/world.js` turns raw hook events into travelers, subagents, energy and the day's progress. It knows nothing about drawing or sound.
   - `src/demo.js` generates a seeded, realistic day of hook events in the exact shape of real payloads.
+  - `src/live.js` takes real events from the app's listener, and `Sources` picks demo or live (real work always wins).
   - `src/audio/` is the shared engine (master chain, spaces, voice cap, meter) and instruments.
   - `src/sea/` is the Sea vibe: `scene.js` (WebGL poster scene), `palette.js` (time of day), `sound.js`. `scene-photo.js` and `palette-photo.js` are the first-pass photographic look, kept for reference and not loaded.
   - `test/` holds node's built-in test runner tests.

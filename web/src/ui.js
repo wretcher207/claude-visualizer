@@ -2,7 +2,7 @@
 
 const STORE_KEY = 'prologue-settings';
 
-export function createUi({ engine, sound, state, begin, frameStats, world, scene, shownPhase, shownEnergy }) {
+export function createUi({ engine, sound, state, begin, frameStats, world, scene, shownPhase, shownEnergy, sources }) {
   const $ = (id) => document.getElementById(id);
   const intro = $('intro');
   const controls = $('controls');
@@ -11,6 +11,8 @@ export function createUi({ engine, sound, state, begin, frameStats, world, scene
   const mute = $('mute');
   const wash = $('wash');
   const speedButtons = [...document.querySelectorAll('.speed button')];
+  const speedGroup = document.querySelector('.speed');
+  const demoBadge = $('demo-badge');
 
   const saved = load();
   if (typeof saved.volume === 'number') volume.value = String(saved.volume);
@@ -54,6 +56,8 @@ export function createUi({ engine, sound, state, begin, frameStats, world, scene
   }
 
   function setSpeed(speed) {
+    // Speed is a demo control; real work runs at real time.
+    if (sources && !sources.demoOn) speed = 1;
     state.speed = speed;
     for (const b of speedButtons) b.setAttribute('aria-pressed', String(Number(b.dataset.speed) === speed));
   }
@@ -114,6 +118,7 @@ export function createUi({ engine, sound, state, begin, frameStats, world, scene
       `world   ${(state.worldNow / 60000).toFixed(1)} min  x${state.speed}`,
       `day     ${shownPhase().toFixed(3)}  target ${world.daylightTarget().toFixed(3)}`,
       `energy  ${shownEnergy().toFixed(3)}`,
+      `source  ${sources ? (sources.demoOn ? 'demo' : 'live') : 'demo'}  live sessions ${sources ? sources.live.ids.size : 0}`,
       `boats   ${world.travelers.size}  subs ${[...world.travelers.values()].reduce((n, t) => n + t.subs.size, 0)}`,
     ];
     if (lv) {
@@ -128,7 +133,13 @@ export function createUi({ engine, sound, state, begin, frameStats, world, scene
     stats.textContent = lines.join('\n');
   }, 120);
 
-  return { setSpeed, toggleMute, start };
+  // The Demo badge and speed buttons only make sense while the demo plays.
+  function showDemo(on) {
+    demoBadge.hidden = !on;
+    speedGroup.hidden = !on;
+  }
+
+  return { setSpeed, toggleMute, start, showDemo };
 }
 
 function load() {

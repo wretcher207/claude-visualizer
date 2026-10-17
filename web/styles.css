@@ -106,7 +106,7 @@ body.idle { cursor: none; }
   transition: opacity 0.8s ease;
 }
 
-.controls[hidden] { display: none; }
+.controls[hidden], .speed[hidden], .badge[hidden] { display: none; }
 body.idle .controls { opacity: 0; }
 
 .controls-left, .controls-right { display: flex; align-items: center; gap: 14px; }

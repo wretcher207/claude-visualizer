@@ -9,6 +9,7 @@
 
 import { World } from './world.js';
 import { DemoSource } from './demo.js';
+import { LiveSource, Sources } from './live.js';
 import { AudioEngine } from './audio/engine.js';
 import { SeaSound } from './sea/sound.js';
 import { createSeaScene, seaPlacement } from './sea/scene.js';
@@ -18,8 +19,14 @@ import { createTicker } from './ticker.js';
 const PUMP_MS = 50;
 const TOLL_EVERY_MS = 18000;
 
+// Inside the app, real Claude Code work drives the scene and the demo is a
+// choice. On the plain web page there's no app, so the demo plays.
+const inApp = Boolean(window.__TAURI__);
+
 const world = new World();
 const demo = new DemoSource({ seed: 207 });
+const live = new LiveSource();
+const sources = new Sources({ world, demo, live, demoOn: !inApp });
 const engine = new AudioEngine();
 const canvas = document.getElementById('scene');
 
@@ -86,7 +93,7 @@ function pump() {
 
   if (state.started) {
     state.worldNow += dt * state.speed;
-    demo.pump(state.worldNow, (evt) => world.handle(evt, state.worldNow));
+    sources.pump(state.worldNow);
     world.update(state.worldNow);
   }
 
@@ -183,7 +190,26 @@ function clampParam(value, lo, hi) {
   return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : null;
 }
 
-const ui = createUi({ engine, sound, state, begin, frameStats, world, scene, shownPhase, shownEnergy });
+const ui = createUi({ engine, sound, state, begin, frameStats, world, scene, shownPhase, shownEnergy, sources });
 if (params.has('speed')) ui.setSpeed(Number(params.get('speed')) || 1);
 
-window.prologue = { world, demo, engine, sound, scene, state, ui, frameStats, pumpHooks, pumpTicker };
+// Real work only plays at real speed.
+sources.onChange = (demoOn) => {
+  if (!demoOn) ui.setSpeed(1);
+  ui.showDemo(demoOn);
+};
+ui.showDemo(sources.demoOn);
+
+// Play demo, for the tray menu (step 5). Returns whether the demo is on;
+// it stays off while a real boat is on the water.
+function setDemo(on) {
+  return sources.setDemo(Boolean(on), state.worldNow);
+}
+
+if (inApp) {
+  live.connect().catch((err) => console.error('live events unavailable', err));
+  // The app can play sound without a click (step 1), so it starts at once.
+  ui.start();
+}
+
+window.prologue = { world, demo, live, sources, setDemo, engine, sound, scene, state, ui, frameStats, pumpHooks, pumpTicker };

@@ -164,7 +164,11 @@ export function createSeaScene(canvas, { world, placement }) {
 
   function onMoment(m) {
     if (!m.traveler) return;
-    const b = boatFor(m.traveler);
+    // Only a new traveler makes a boat. A goodbye or a toll for a boat that
+    // was never drawn would otherwise fire a sun burst for nothing.
+    const b = m.type === 'traveler:new' ? boatFor(m.traveler) : boats.get(m.traveler.id);
+    if (!b) return;
+    b.traveler = m.traveler;
     switch (m.type) {
       case 'traveler:new':
         if (b.departing) {
@@ -223,7 +227,8 @@ export function createSeaScene(canvas, { world, placement }) {
   }
 
   function toll(traveler) {
-    const b = boatFor(traveler);
+    const b = boats.get(traveler.id);
+    if (!b) return;
     b.flash = 1;
     addRipple(b.x, b.y, b.scale);
   }

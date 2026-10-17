@@ -1,6 +1,6 @@
 # Prompt Is Prologue: the plan
 
-Locked 2026-10-15. Phase 1 (Sea and demo mode in the browser) is built and approved. Phase 2's six open choices were settled with David on 2026-10-15, and he approved its build order below the same day. Current state is in `HANDOFF.md`.
+Locked 2026-10-15. Phase 1 (Sea and demo mode in the browser) is built and approved. Phase 2 steps 1 to 3 are built (2026-10-17). Phase 2's six open choices were settled with David on 2026-10-15, and he approved its build order below the same day. Current state is in `HANDOFF.md`.
 
 ## What it is
 
