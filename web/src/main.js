@@ -14,6 +14,7 @@ import { SeaSound } from './sea/sound.js';
 import { createSeaScene, seaPlacement } from './sea/scene.js';
 import { createUi } from './ui.js';
 import { createTicker } from './ticker.js';
+import { listenForClaude } from './live.js';
 
 const PUMP_MS = 50;
 const TOLL_EVERY_MS = 18000;
@@ -25,6 +26,7 @@ const canvas = document.getElementById('scene');
 
 const state = {
   started: false,
+  live: false,       // real Claude events are coming in; the demo is off
   speed: 1,
   worldNow: 0,
   lastPump: performance.now(),
@@ -85,8 +87,8 @@ function pump() {
   state.lastPump = real;
 
   if (state.started) {
-    state.worldNow += dt * state.speed;
-    demo.pump(state.worldNow, (evt) => world.handle(evt, state.worldNow));
+    state.worldNow += dt * (state.live ? 1 : state.speed);
+    if (!state.live) demo.pump(state.worldNow, (evt) => world.handle(evt, state.worldNow));
     world.update(state.worldNow);
   }
 
@@ -185,5 +187,21 @@ function clampParam(value, lo, hi) {
 
 const ui = createUi({ engine, sound, state, begin, frameStats, world, scene, shownPhase, shownEnergy });
 if (params.has('speed')) ui.setSpeed(Number(params.get('speed')) || 1);
+
+// In the app, Claude's own events arrive from the listener. The first one
+// turns the demo off: its boats sail home into the sun, and from then on only
+// real work moves the world, at real speed.
+listenForClaude((evt) => {
+  if (!state.live) goLive();
+  world.handle(evt, state.worldNow);
+});
+
+function goLive() {
+  state.live = true;
+  for (const t of [...world.travelers.values()]) {
+    if (t.id.startsWith('demo-')) world.depart(t, 'demo-off', state.worldNow);
+  }
+  ui.start();
+}
 
 window.prologue = { world, demo, engine, sound, scene, state, ui, frameStats, pumpHooks, pumpTicker };
