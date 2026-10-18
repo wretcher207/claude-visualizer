@@ -4,7 +4,7 @@ Status 2026-10-18: phase 1 done and approved. Phase 2 step 1, the app window, pa
 
 Paused state (2026-10-18, checked): the app isn't running, and none of its hooks are anywhere: `~/.claude/settings.json` holds no `/prompt-is-prologue/hook` entries and is byte for byte what it was before step 4, there's no `settings.json.bak-prologue`, and the temporary project hook (`claude-visualizer/.claude/settings.local.json`) is gone. `connection.json` was deleted, so the next launch connects again and shows the panel. Opening the app is what connects it; until step 5 it only reports while its window is open.
 
-Backed up 2026-10-18 (David's backup task): this PC's branch, through step 4, is on GitHub as `prompt-is-prologue-pc-2026-10-18`. GitHub's own `prompt-is-prologue` was left alone because it holds two different commits from a cloud Claude session on 2026-10-17 (`3617635` step 2, `1818921` step 3) that build the listener as a separate `src-tauri/listener` crate instead of this PC's `src-tauri/src/listener.rs`. Nothing was force-pushed. David picks which version `prompt-is-prologue` should hold; this PC's is the one that reached step 4 and passed its checks.
+On GitHub (2026-10-18): `prompt-is-prologue` holds this PC's version, through step 4. David chose it on 2026-10-18. The laptop's different step 2/3 commits (a cloud Claude session on 2026-10-17, `3617635` and `1818921`, which built the listener as a separate `src-tauri/listener` crate) are kept on GitHub as `prompt-is-prologue-laptop-2026-10-17`. `prompt-is-prologue-pc-2026-10-18` is a leftover copy of this branch from the backup.
 
 Changed 2026-10-18: David dropped the mail bottles idea. Prologue is only an ambient visualizer of Claude sessions (prompts, tool calls, subagents, waiting, compaction). No email features; `workspace/inbox-watcher` is a separate project and nothing here connects to it.
 
@@ -17,7 +17,7 @@ Changed 2026-10-18: David dropped the mail bottles idea. Prologue is only an amb
 
 ## Where things stand
 
-- Branch `prompt-is-prologue`, from `main` at `ee9a4de`. Local commits are on GitHub as `prompt-is-prologue-pc-2026-10-18` (see the backup note at the top). The repo is public: push only when David says so.
+- Branch `prompt-is-prologue`, from `main` at `ee9a4de`. On GitHub as `prompt-is-prologue` (see the note at the top). The repo is public: push only when David says so.
 - Phase 1 of `PLAN.md` is built in `web/`: the world model (`src/world.js`), the seeded demo day (`src/demo.js`), the shared audio engine (`src/audio/`), and the Sea vibe (`src/sea/`). Zero dependencies, no build step.
 - Phase 2 step 1 is built in `src-tauri/`: a bare Tauri app that opens `web/` unchanged. The root `package.json` gained `@tauri-apps/cli` as a devDependency and a `tauri` script; `.gitignore` gained `src-tauri/target/` and `src-tauri/gen/`.
 - Phase 2 step 2 is built: `src-tauri/src/listener.rs` (the listener, with its tests), `web/src/live.js` plus a few lines in `web/src/main.js` (live events go to the world, and the first one turns the demo off), and `src-tauri/tools/send-test-events.mjs` (the test sender). `src-tauri/Cargo.toml` gained `serde`, `serde_json` and `getrandom`, all already in the lockfile through Tauri, so nothing new was downloaded.
