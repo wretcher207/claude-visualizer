@@ -142,6 +142,9 @@ Test tools: `node src-tauri/tools/send-test-events.mjs session|refusals|timing|p
 - Live motion in a visible window. The Claude Browser pane was hidden during work, so checks used stills and forced frames. David has watched it and approved.
 - Firefox, Safari, Linux, phones, and the Tauri webviews on Mac and Linux. WebView2 on Windows is checked (step 1).
 - Sound by ear in the app window when hidden or minimized. David approved it by ear with the window open (2026-10-15).
+- A real Claude Code event reaching the app. The probe saw two real requests (UserPromptSubmit and SessionEnd) on a separate test server, but every event the app itself has taken came from the test sender imitating Claude's client. A real PreToolUse or PostToolUse with a real tool result has never been seen, because the CLI couldn't sign in. That's step 4's check.
+- The listener on Mac and Linux: the private (0600) key file, the config folders the test sender assumes there, and how binding the port behaves.
+- The moment the first live event starts the music by itself, by ear. Only David can judge whether it feels right.
 
 ## Decisions made while building
 
