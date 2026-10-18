@@ -130,3 +130,9 @@ Ordered by risk, so the step most likely to change the plan comes first. Each st
 - **Old Claude Visualizer hooks:** the app finds them, shows them, and removes them only if the person says yes. David's own settings have none.
 - **Demo in the app:** it stays in the tray menu and turns itself off when a real Claude session shows up, so fake boats never mix with real work.
 - **Signing:** ship unsigned with plain install steps, and decide at release.
+
+### Live and demo (settled with David 2026-10-18)
+
+- **Going live resets the day.** When a real session shows up while the demo is playing, the demo's boats sail home and the sky rolls on through dusk and night to a fresh dawn, over about 2 to 3 minutes, so the light only ever shows real work. A demo that has barely begun just settles back to dawn.
+- **The app window opens on the sea.** No start screen in the app: the empty sea at dawn with no music, until Claude's first session brings boats and music. The demo moves to the tray menu in step 5.
+- **While live, the bar shows only Surf, Mute, volume and Full.** The Demo tag and the speed buttons come back for the demo.

@@ -7,7 +7,7 @@ Ambient scenes and music that follow Claude Code while it works. Each running se
 - `web/` is the new project: a plain web layer with no framework and no dependencies, written as ES modules. The same files will run inside the Tauri app (phase 2) and on the public demo page.
   - `src/world.js` turns raw hook events into travelers, subagents, energy and the day's progress. It knows nothing about drawing or sound.
   - `src/demo.js` generates a seeded, realistic day of hook events in the exact shape of real payloads.
-  - `src/live.js` takes Claude's real events from the app (the `claude-hook` event) and hands them to the world the same way. It does nothing on the demo page.
+  - `src/live.js` decides where the world's events come from: the demo, or in the app Claude's real events (the `claude-hook` event). Real work always wins: the first real event turns the demo off and starts a new day, and the demo can't start while real boats are on the water.
   - `src/audio/` is the shared engine (master chain, spaces, voice cap, meter) and instruments.
   - `src/sea/` is the Sea vibe: `scene.js` (WebGL poster scene), `palette.js` (time of day), `sound.js`. `scene-photo.js` and `palette-photo.js` are the first-pass photographic look, kept for reference and not loaded.
   - `test/` holds node's built-in test runner tests.
@@ -18,7 +18,7 @@ Ambient scenes and music that follow Claude Code while it works. Each running se
 ## Run and test
 
 - Double-click `web/open-demo.cmd`, or run `node web/serve.cjs`, then open http://127.0.0.1:5178/web/ and click to begin.
-- `node --test "web/test/*.test.js"` runs the world and demo tests.
+- `node --test "web/test/*.test.js"` runs the world, demo and live tests.
 - Press D for the debug panel: time-of-day and energy overrides, frame rate, levels, voice count, out-of-key count.
 - URL options: `?autostart`, `?day=0.66`, `?energy=0.5`, `?speed=16`.
 - `web/tools/perf.ps1` measures CPU and GPU share in headless Chrome on the real GPU.

@@ -126,6 +126,7 @@ export function createSeaScene(canvas, { world, placement }) {
         traveler,
         seed: traveler.seed,
         born: clock,
+        drawn: false,
         f: 0,
         departing: false,
         departedAt: null,
@@ -164,6 +165,16 @@ export function createSeaScene(canvas, { world, placement }) {
 
   function onMoment(m) {
     if (!m.traveler) return;
+    // A boat that never made it onto the screen (it came and went while the
+    // window was hidden) leaves quietly, with no sun burst for a goodbye
+    // nobody saw.
+    if (m.type === 'traveler:gone') {
+      const seen = boats.get(m.traveler.id);
+      if (!seen || !seen.drawn) {
+        boats.delete(m.traveler.id);
+        return;
+      }
+    }
     const b = boatFor(m.traveler);
     switch (m.type) {
       case 'traveler:new':
@@ -223,7 +234,8 @@ export function createSeaScene(canvas, { world, placement }) {
   }
 
   function toll(traveler) {
-    const b = boatFor(traveler);
+    const b = boats.get(traveler.id);
+    if (!b) return;
     b.flash = 1;
     addRipple(b.x, b.y, b.scale);
   }
@@ -263,6 +275,7 @@ export function createSeaScene(canvas, { world, placement }) {
           continue;
         }
       }
+      b.drawn = true;
 
       b.flash *= Math.exp(-dt / 1.0);
       b.pulse *= Math.exp(-dt / 0.45);

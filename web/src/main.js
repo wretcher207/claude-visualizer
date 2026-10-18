@@ -14,19 +14,20 @@ import { SeaSound } from './sea/sound.js';
 import { createSeaScene, seaPlacement } from './sea/scene.js';
 import { createUi } from './ui.js';
 import { createTicker } from './ticker.js';
-import { listenForClaude } from './live.js';
+import { Sources, listenForClaude } from './live.js';
 
 const PUMP_MS = 50;
 const TOLL_EVERY_MS = 18000;
+const DAWN_HOLD = 0.08; // a day younger than this still looks like dawn
 
 const world = new World();
 const demo = new DemoSource({ seed: 207 });
+const sources = new Sources({ world, demo });
 const engine = new AudioEngine();
 const canvas = document.getElementById('scene');
 
 const state = {
   started: false,
-  live: false,       // real Claude events are coming in; the demo is off
   speed: 1,
   worldNow: 0,
   lastPump: performance.now(),
@@ -74,12 +75,14 @@ function stopToll(id) {
 world.on((m) => {
   if (m.type === 'waiting:start') startToll(m.traveler);
   if (m.type === 'waiting:end' || m.type === 'traveler:gone' || m.type === 'rest') stopToll(m.traveler.id);
-  if (m.type === 'dawn') state.dawning = true;
+  // A new day rolls on through the night to dawn, unless the light hasn't
+  // left dawn yet; then it just starts over where it is.
+  if (m.type === 'dawn' && state.phase > DAWN_HOLD) state.dawning = true;
   sound.onMoment(m);
   scene.onMoment(m);
 });
 
-// ---- The pump: world time, demo events, smoothed state ----
+// ---- The pump: world time, events, smoothed state ----
 
 function pump() {
   const real = performance.now();
@@ -87,8 +90,8 @@ function pump() {
   state.lastPump = real;
 
   if (state.started) {
-    state.worldNow += dt * (state.live ? 1 : state.speed);
-    if (!state.live) demo.pump(state.worldNow, (evt) => world.handle(evt, state.worldNow));
+    state.worldNow += dt * (sources.demoOn ? state.speed : 1);
+    sources.pump(state.worldNow);
     world.update(state.worldNow);
   }
 
@@ -156,15 +159,31 @@ requestAnimationFrame(frame);
 
 // ---- Start, controls, debug ----
 
+// The demo page's "Click to begin": the world starts with the demo playing.
 async function begin() {
-  if (!state.started) {
-    state.started = true;
-    state.lastPump = performance.now();
-  }
-  if (!engine.ready) {
-    await engine.start();
-    sound.start();
-  }
+  startWorld();
+  playDemo();
+  await startSound();
+}
+
+function startWorld() {
+  if (state.started) return;
+  state.started = true;
+  state.lastPump = performance.now();
+}
+
+async function startSound() {
+  if (engine.ready) return;
+  await engine.start();
+  sound.start();
+}
+
+// The demo plays only while no real boats are on the water (see live.js).
+function playDemo() {
+  if (!sources.playDemo(state.worldNow)) return false;
+  ui.setLive(false);
+  startSound();
+  return true;
 }
 
 // URL options for testing and stills:
@@ -174,8 +193,8 @@ async function begin() {
 //   ?speed=16    demo speed
 const params = new URLSearchParams(location.search);
 if (params.has('autostart')) {
-  state.started = true;
-  state.lastPump = performance.now();
+  startWorld();
+  sources.playDemo(state.worldNow);
 }
 if (params.has('day')) state.dayOverride = clampParam(params.get('day'), 0, 1.25);
 if (params.has('energy')) state.energyOverride = clampParam(params.get('energy'), 0, 1);
@@ -188,20 +207,17 @@ function clampParam(value, lo, hi) {
 const ui = createUi({ engine, sound, state, begin, frameStats, world, scene, shownPhase, shownEnergy });
 if (params.has('speed')) ui.setSpeed(Number(params.get('speed')) || 1);
 
-// In the app, Claude's own events arrive from the listener. The first one
-// turns the demo off: its boats sail home into the sun, and from then on only
-// real work moves the world, at real speed.
-listenForClaude((evt) => {
-  if (!state.live) goLive();
-  world.handle(evt, state.worldNow);
+// In the app, Claude's own events arrive from the listener and real work
+// always wins over the demo (see live.js). There's no start screen: the sea is
+// there from the start, and boats and music arrive with Claude's first session.
+const inApp = listenForClaude((evt) => {
+  sources.live(evt, state.worldNow);
+  ui.setLive(true);
+  startSound();
 });
-
-function goLive() {
-  state.live = true;
-  for (const t of [...world.travelers.values()]) {
-    if (t.id.startsWith('demo-')) world.depart(t, 'demo-off', state.worldNow);
-  }
-  ui.start();
+if (inApp) {
+  startWorld();
+  ui.openLive();
 }
 
-window.prologue = { world, demo, engine, sound, scene, state, ui, frameStats, pumpHooks, pumpTicker };
+window.prologue = { world, demo, sources, playDemo, engine, sound, scene, state, ui, frameStats, pumpHooks, pumpTicker };

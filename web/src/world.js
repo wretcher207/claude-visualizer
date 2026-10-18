@@ -322,6 +322,13 @@ export class World {
 
   // ---- Time passing ----
 
+  // A new day: the work so far stops counting, and the light heads on
+  // through the night to dawn.
+  newDay(now) {
+    this.dayWork = 0;
+    this.emit({ type: 'dawn', now });
+  }
+
   update(now) {
     for (const t of [...this.travelers.values()]) {
       if (t.resting && now - t.restSince > this.cfg.restFallbackMs) this.endRest(t, now);
@@ -332,8 +339,7 @@ export class World {
     }
 
     if (this.lastEventAt !== null && this.dayWork > 0 && now - this.lastEventAt > this.cfg.dawnAfterIdleMs) {
-      this.dayWork = 0;
-      this.emit({ type: 'dawn', now });
+      this.newDay(now);
     }
 
     for (const [id, memory] of this.departed) {

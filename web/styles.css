@@ -43,6 +43,7 @@ body.idle { cursor: none; }
 }
 
 .intro.gone { opacity: 0; pointer-events: none; }
+.intro[hidden] { display: none; }
 
 .intro-inner { text-align: center; padding: 0 16px; }
 
@@ -124,6 +125,7 @@ body.idle .controls { opacity: 0; }
 }
 
 .speed { display: inline-flex; border: 1px solid var(--ink-faint); border-radius: 999px; overflow: hidden; }
+body.live .badge, body.live .speed { display: none; }
 
 .speed button, .text-btn {
   font: inherit;

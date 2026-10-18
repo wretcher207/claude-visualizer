@@ -1,14 +1,14 @@
 # Handoff
 
-Status 2026-10-18: phase 1 done and approved. Phase 2 step 1, the app window, passed its checks on 2026-10-15 (results below; check 3's truly hidden case was proven in a test copy that hides the webview, and the bare app needs that call in step 5). Phase 2 step 2, the listener, is built and passed its checks on David's PC on 2026-10-18 (see "Phase 2 step 2: the listener"). Step 3, the live scene, starts when David says go. The branch is on GitHub up to `b994cb1` (pushed with David's approval in a workspace backup sweep); everything after that is committed locally only.
+Status 2026-10-18: phase 1 done and approved. Phase 2 step 1, the app window, passed its checks on 2026-10-15 (results below; check 3's truly hidden case was proven in a test copy that hides the webview, and the bare app needs that call in step 5). Phase 2 steps 2 and 3, the listener and the live scene, are built and passed their checks on David's PC on 2026-10-18 (see their sections below). Step 4, connecting to Claude Code, starts when David says go. The branch is on GitHub up to `b994cb1` (pushed with David's approval in a workspace backup sweep); everything after that is committed locally only.
 
 Changed 2026-10-18: David dropped the mail bottles idea. Prologue is only an ambient visualizer of Claude sessions (prompts, tool calls, subagents, waiting, compaction). No email features; `workspace/inbox-watcher` is a separate project and nothing here connects to it.
 
 ## Start here (fresh chat)
 
 1. Read `AGENTS.md` (rules), `PLAN.md` (the locked plan and every product decision), then this file.
-2. The next job is step 3 of "Phase 2: the build order" in `PLAN.md` (the live scene), when David says go. What step 2 left for steps 3 and 4 is at the end of "Phase 2 step 2: the listener" below; the findings from step 1 that change step 5 are in "Phase 2 step 1: the app window".
-3. To see the current state: double-click `web/open-demo.cmd` (or run `node web/serve.cjs`) and open http://127.0.0.1:5178/web/, then click once. In the Claude app, the workspace launch config has a `prologue` preview entry. 16x runs a day in minutes; D opens the debug panel with a time-of-day slider.
+2. The next job is step 4 of "Phase 2: the build order" in `PLAN.md` (connecting to Claude Code), when David says go. Its notes are under "For step 4" in "Phase 2 step 2: the listener"; step 5's are at the end of "Phase 2 step 3" and in "Phase 2 step 1".
+3. To see the current state: double-click `web/open-demo.cmd` (or run `node web/serve.cjs`) and open http://127.0.0.1:5178/web/, then click once. In the Claude app, the workspace launch config has a `prologue` preview entry. 16x runs a day in minutes; D opens the debug panel with a time-of-day slider. The app itself opens on the empty sea; `node src-tauri/tools/send-test-events.mjs session` brings boats.
 4. To run the app: `npm install` once, then `npm run tauri build -- --no-bundle` and open `src-tauri/target/release/prompt-is-prologue.exe`. It listens for Claude on 127.0.0.1:47207, but until step 4 connects the hooks, only `node src-tauri/tools/send-test-events.mjs session` sends it anything.
 
 ## Where things stand
@@ -17,6 +17,7 @@ Changed 2026-10-18: David dropped the mail bottles idea. Prologue is only an amb
 - Phase 1 of `PLAN.md` is built in `web/`: the world model (`src/world.js`), the seeded demo day (`src/demo.js`), the shared audio engine (`src/audio/`), and the Sea vibe (`src/sea/`). Zero dependencies, no build step.
 - Phase 2 step 1 is built in `src-tauri/`: a bare Tauri app that opens `web/` unchanged. The root `package.json` gained `@tauri-apps/cli` as a devDependency and a `tauri` script; `.gitignore` gained `src-tauri/target/` and `src-tauri/gen/`.
 - Phase 2 step 2 is built: `src-tauri/src/listener.rs` (the listener, with its tests), `web/src/live.js` plus a few lines in `web/src/main.js` (live events go to the world, and the first one turns the demo off), and `src-tauri/tools/send-test-events.mjs` (the test sender). `src-tauri/Cargo.toml` gained `serde`, `serde_json` and `getrandom`, all already in the lockfile through Tauri, so nothing new was downloaded.
+- Phase 2 step 3 is built: `Sources` in `web/src/live.js` (demo or real work, and the rules between them), `world.newDay()`, the app's no-start-screen live mode, the never-drawn boat guard in `scene.js`, and `web/test/live.test.js`.
 - The old Claude Visualizer (`server.js`, `hook.js`, `lib/`, `public/`, `start.bat`, `start.vbs`) is untouched and still listens on the whole network if started. Phase 2 removes it. Don't run `npm start`.
 - `design-refs/` holds David's four Tycho reference images for mood. It is excluded from git locally (`.git/info/exclude`) and must never be committed.
 - `web/src/sea/scene-photo.js` and `palette-photo.js` are the first, photographic look, kept for reference and not loaded.
@@ -89,12 +90,7 @@ The checks, on David's PC with a test copy (debug port, built in `src-tauri/targ
 3. **Privacy.** 13 events, one of each kind, with a marker in every private field: none of it reached the page, only the 11 fields above. After all the tests, nothing in the app's two folders held a marker or a test session id; the only file the app writes is `listener.json`.
 4. **Speed.** Answer times with a keep-alive Node client like Claude's: small events about 1 to 2 ms (the first request of a run up to 20 ms), a 1 MB tool result about 3 ms, and a 16 MB one 20 to 60 ms, which is the time to move 16 MB over this PC's loopback (a bare Node server here was no faster). With the page frozen for 5 s, 2,507 events were answered at a 1 ms median, and all of them reached the page once it woke.
 
-For step 3:
-
-- The live hookup in `main.js` is the minimum. Step 3 makes `live.js` the real source with its own tests. Once live, Play demo doesn't come back until the app restarts, and the speed buttons still show but do nothing.
-- Work the demo did before the first live event still counts toward the day (`world.dayWork`), so the light can be ahead of real work. Decide whether going live resets the day.
-- The `boatFor()` guard in the technical notes below is still to do.
-- Live events that arrive before the page has loaded are lost (nothing is listening yet). Harmless at app start; worth knowing.
+For step 3: done (see "Phase 2 step 3"). One note stands: live events that arrive before the page has loaded are lost, since nothing is listening yet. Harmless at app start.
 
 For step 4:
 
@@ -103,6 +99,35 @@ For step 4:
 - `claude -p` on this PC couldn't sign in on 2026-10-18 ("OAuth session expired and could not be refreshed"), so step 4's real-session check needs David to sign the CLI in again, or uses Code tab sessions.
 
 Test tools: `node src-tauri/tools/send-test-events.mjs session|refusals|timing|private` (it reads `listener.json`). The DevTools and browser helpers used for these checks are with step 1's harness, in its `step2/` folder. `src-tauri/target/test` holds the test builds (1.4 GB); delete it any time.
+
+## Phase 2 step 3: the live scene (checked 2026-10-18)
+
+David's choices for this step are in `PLAN.md` under "Live and demo".
+
+What's built:
+
+- `web/src/live.js` now holds `Sources`, which decides where the world's events come from. `playDemo(now)` refuses while real boats are on the water (any traveler whose id doesn't start with `demo-`) and starts a fresh demo day, clearing the world's memory of earlier demo boats so they set out from the sun again. `live(evt, now)` turns the demo off first: its boats sail home (`demo-off`), and if the demo moved the day along, `world.newDay(now)` starts a new one. `pump(now)` plays the demo only while it's on.
+- `world.newDay(now)` is the one way a new day starts (the 45-minute quiet dawn uses it too). In `main.js` the light rolls on through night to dawn only if it has left dawn (shown phase above 0.08, `DAWN_HOLD`); a younger day just settles back. That also changed the quiet-dawn case on purpose: a day that had barely begun used to roll through a whole day and night in 3.5 minutes.
+- `main.js`: the demo page's click (and `?autostart`) plays the demo as before. In the app there's no start screen: the world starts at load in live mode, the intro is hidden, and sound starts with the first real event. World time runs at 1x whenever the demo is off. `window.prologue.playDemo()` is what step 5's tray item will call; it returns false while real boats are out.
+- `ui.js` and `styles.css`: `openLive()` hides the intro, and `setLive()` puts a `live` class on the body that hides the Demo tag and the speed buttons.
+- `scene.js`: a boat that never made it onto the screen (it came and went while the page was hidden) is removed quietly on its goodbye, with no sun burst, and a toll never creates a boat.
+- `web/test/live.test.js`: a full demo day passed through a copy of the listener's field list gives the world exactly the same moments as the raw demo (it fails if a field the world needs is dropped), plus the demo rules (off on the first real event and a new day after its boats leave, no demo while real boats are out, a quiet real boat fading frees the demo, a replayed demo starts fresh) and no listening on the demo page. 14 tests pass.
+
+The checks, on David's PC with a test copy. All passed:
+
+1. **Opening.** The app opens on the empty sea at dawn: no start screen, Demo tag and speed buttons hidden, no sound, no boats, clean console.
+2. **Real work.** Test events brought three boats and started the music by themselves. `playDemo()` was refused while they were out. After their SessionEnds it played, with the tag and speeds back.
+3. **The hand-over.** A real event 33 demo minutes in (shown light 0.26): the demo turned off, its three boats sailed home, the real boat was born, and the light rolled from day through dusk and night (moon and stars) to dawn in about 2.5 minutes. With the demo only seconds in (light 0.005), it settled back to dawn with no roll.
+4. **Hidden window.** With the page made to think it was hidden, a session that arrived and ended left the scene's boat count where it started (it went up by one and back down), so nothing plays when the window comes back. The real hidden case needs step 5's `Webview::hide`.
+5. **The demo page.** In Chromium with no app: the start screen shows, a click plays the demo at 16x with three boats, the tag and speeds show, sound runs, clean console.
+
+For step 4: unchanged from step 2's list above.
+
+For step 5:
+
+- The tray's Play demo calls `prologue.playDemo()`. There's no stop-demo control yet (`Sources.stopDemo` exists). Decide whether the menu item toggles.
+- The music still plays after the last real boat sails home; the fade-out once the last boat is gone is step 5's.
+- World time in live mode is the pump's running total, capped at a second per tick, so after the PC sleeps, boats from before it stay until 20 awake minutes pass, and the quiet dawn waits 45. Worth basing live time on the wall clock in step 5 or 7.
 
 ## Phase 2 technical notes
 
@@ -122,8 +147,8 @@ Test tools: `node src-tauri/tools/send-test-events.mjs session|refusals|timing|p
 - The app's own entries: one per event below, each `{"type": "http", "url": "http://127.0.0.1:<port>/<a path only this app uses>", "timeout": 1, "headers": {"<key header>": "<key>"}}`. Find them by that path, so a port change can rewrite them.
 - Events the world handles: UserPromptSubmit, PreToolUse, PostToolUse, PostToolUseFailure, PermissionRequest, PermissionDenied, Notification, Elicitation, ElicitationResult, SubagentStart, SubagentStop, PreCompact, PostCompact, Stop, StopFailure, SessionEnd.
 - Tauri notes. Checked in step 1: `additionalBrowserArgs` with the autoplay flag lets sound start without a click, and it replaces wry's default arguments, so they're carried over; the ticker's `blob:` worker runs under the CSP (`worker-src blob:`); the page only counts as hidden when the webview is hidden. Done in step 2: `withGlobalTauri` is set, and `web/src/live.js` listens when `window.__TAURI__` exists. Full screen may need Tauri's window call instead of the page's. Linux has no tray click events (menu only). On Mac the icon should be a template image, and App Nap may slow a hidden app; check there. Windows uninstall cleanup can run from an NSIS pre-uninstall hook.
-- Wiring: `main.js` creates `DemoSource` and, in the app, takes live events through `src/live.js`; the first live event turns the demo off. Demo as a tray choice comes with step 5. The web layer stays framework-free so the same files ship in the app and on the demo page.
-- Guard needed: the scene's `boatFor()` creates a boat for any moment that names a traveler, including `traveler:gone` or a toll for a session it never drew. Harmless in the demo; live, it could fire a sun burst for a boat that never appeared.
+- Wiring: `main.js` creates `DemoSource` and `Sources` (`src/live.js`), which feeds the world from the demo or, in the app, from Claude. Demo as a tray choice comes with step 5. The web layer stays framework-free so the same files ship in the app and on the demo page.
+- Guard (done in step 3): the scene's `boatFor()` creates a boat for any moment that names a traveler. A goodbye for a boat that was never drawn, and a toll for a boat that doesn't exist, no longer do.
 - `src-tauri/` follows `workspace/lightcut`'s setup. Rendering in WebView2 on Windows is checked (step 1); WebKitGTK on Linux and WKWebView on Mac are untested.
 - Background timers: inside WebView2 the worker ticker held 20 ticks a second for 6.5 minutes with the page hidden (step 1).
 
@@ -145,6 +170,8 @@ Test tools: `node src-tauri/tools/send-test-events.mjs session|refusals|timing|p
 - A real Claude Code event reaching the app. The probe saw two real requests (UserPromptSubmit and SessionEnd) on a separate test server, but every event the app itself has taken came from the test sender imitating Claude's client. A real PreToolUse or PostToolUse with a real tool result has never been seen, because the CLI couldn't sign in. That's step 4's check.
 - The listener on Mac and Linux: the private (0600) key file, the config folders the test sender assumes there, and how binding the port behaves.
 - The moment the first live event starts the music by itself, by ear. Only David can judge whether it feels right.
+- The demo-to-live hand-over by ear: the demo boats' departure sounds and the sunrise cue as a real boat is born. Checked in pictures and numbers only.
+- The never-drawn boat guard with a really hidden webview. It was checked by making the page think it was hidden; step 5 hides the webview for real.
 
 ## Decisions made while building
 

@@ -30,6 +30,19 @@ export function createUi({ engine, sound, state, begin, frameStats, world, scene
 
   intro.addEventListener('click', start, { once: true });
 
+  // In the app there's no start screen: the sea is there from the start.
+  function openLive() {
+    intro.hidden = true;
+    controls.hidden = false;
+    setLive(true);
+    poke();
+  }
+
+  // Live means real sessions, not the demo: the demo's tag and speeds step aside.
+  function setLive(live) {
+    document.body.classList.toggle('live', live);
+  }
+
   volume.addEventListener('input', () => {
     engine.setVolume(Number(volume.value));
     if (engine.muted) toggleMute(false);
@@ -128,7 +141,7 @@ export function createUi({ engine, sound, state, begin, frameStats, world, scene
     stats.textContent = lines.join('\n');
   }, 120);
 
-  return { setSpeed, toggleMute, start };
+  return { setSpeed, toggleMute, start, openLive, setLive };
 }
 
 function load() {
