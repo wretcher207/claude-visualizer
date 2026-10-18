@@ -1,6 +1,10 @@
 # Handoff
 
-Status 2026-10-18: phase 1 done and approved. Phase 2 step 1, the app window, passed its checks on 2026-10-15 (results below; check 3's truly hidden case was proven in a test copy that hides the webview, and the bare app needs that call in step 5). Phase 2 steps 2, 3 and 4 (the listener, the live scene, and connecting to Claude Code) are built and passed their checks on David's PC on 2026-10-18 (see their sections below). Step 5, the tray app, starts when David says go. The branch is on GitHub up to `b994cb1` (pushed with David's approval in a workspace backup sweep); everything after that is committed locally only.
+Status 2026-10-18: phase 1 done and approved. Phase 2 step 1, the app window, passed its checks on 2026-10-15 (results below; check 3's truly hidden case was proven in a test copy that hides the webview, and the bare app needs that call in step 5). Phase 2 steps 2, 3 and 4 (the listener, the live scene, and connecting to Claude Code) are built and passed their checks on David's PC on 2026-10-18 (see their sections below). Step 5, the tray app, starts when David says go; he paused here on 2026-10-18.
+
+Paused state (2026-10-18, checked): the app isn't running, and none of its hooks are anywhere: `~/.claude/settings.json` holds no `/prompt-is-prologue/hook` entries and is byte for byte what it was before step 4, there's no `settings.json.bak-prologue`, and the temporary project hook (`claude-visualizer/.claude/settings.local.json`) is gone. `connection.json` was deleted, so the next launch connects again and shows the panel. Opening the app is what connects it; until step 5 it only reports while its window is open.
+
+The branch is on GitHub up to `b994cb1` (pushed with David's approval in a workspace backup sweep); everything after that is committed locally only.
 
 Changed 2026-10-18: David dropped the mail bottles idea. Prologue is only an ambient visualizer of Claude sessions (prompts, tool calls, subagents, waiting, compaction). No email features; `workspace/inbox-watcher` is a separate project and nothing here connects to it.
 
