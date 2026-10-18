@@ -38,6 +38,46 @@
     </div>
   </div>
 
+  <div id="connect" class="connect" hidden>
+    <div class="connect-card">
+      <section id="connect-added" role="dialog" aria-labelledby="connect-added-title" hidden>
+        <h2 id="connect-added-title">Connected to Claude Code</h2>
+        <p>Added to your Claude Code settings (a backup is saved, your own hooks are untouched):</p>
+        <ul>
+          <li>when you send a prompt</li>
+          <li>before and after each tool Claude uses</li>
+          <li>when Claude asks you something, and when you answer</li>
+          <li>when helpers head out and come back</li>
+          <li>when Claude compacts its memory</li>
+          <li>when Claude finishes, or stops on an error</li>
+          <li>when a session ends</li>
+        </ul>
+        <p>Only which session, what kind of step, which tool and how long it took reach the scene. Your prompts and files stay out.</p>
+        <p>Quitting the app takes them out again.</p>
+        <div class="connect-actions">
+          <button type="button" data-choice="undo">Undo</button>
+          <button type="button" data-choice="ok">OK</button>
+        </div>
+      </section>
+      <section id="connect-old" role="dialog" aria-labelledby="connect-old-title" hidden>
+        <h2 id="connect-old-title">Old Claude Visualizer hooks</h2>
+        <p>Your Claude Code settings still have <span id="connect-old-count"></span> from the old Claude Visualizer. Prompt Is Prologue replaces it, so they can go.</p>
+        <div class="connect-actions">
+          <button type="button" data-choice="keep-old">Keep them</button>
+          <button type="button" data-choice="remove-old">Remove them</button>
+        </div>
+      </section>
+      <section id="connect-problem" role="dialog" aria-labelledby="connect-problem-title" hidden>
+        <h2 id="connect-problem-title">Couldn't connect to Claude Code</h2>
+        <p>Nothing was changed. <span id="connect-problem-text"></span></p>
+        <p>Boats will show once that's sorted and the app starts again.</p>
+        <div class="connect-actions">
+          <button type="button" data-choice="dismiss">OK</button>
+        </div>
+      </section>
+    </div>
+  </div>
+
   <aside id="debug" class="debug" hidden>
     <div class="debug-row">
       <label for="dbg-day">Time of day</label>

@@ -33,7 +33,7 @@ const READ_TIMEOUT: Duration = Duration::from_secs(2);
 const WRITE_TIMEOUT: Duration = Duration::from_secs(1);
 
 // The events the world uses. SessionStart isn't one: it can't be sent over HTTP.
-const EVENTS: [&str; 16] = [
+pub const EVENTS: [&str; 16] = [
     "UserPromptSubmit",
     "PreToolUse",
     "PostToolUse",

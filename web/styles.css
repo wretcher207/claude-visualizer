@@ -143,6 +143,65 @@ body.live .badge, body.live .speed { display: none; }
 #mute[aria-pressed="true"] { color: var(--accent); }
 .speed button:hover, .text-btn:hover { color: var(--ink); }
 
+/* ---- Connecting to Claude Code (app only) ---- */
+
+.connect {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  pointer-events: none;
+}
+
+.connect[hidden] { display: none; }
+
+.connect-card {
+  pointer-events: auto;
+  width: min(460px, 100%);
+  padding: 24px 28px 20px;
+  background: var(--panel-strong);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--ink-faint);
+  border-radius: 14px;
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.connect h2 {
+  margin: 0 0 12px;
+  font-weight: 400;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.connect p { margin: 0 0 10px; }
+.connect ul { margin: 0 0 12px; padding-left: 18px; }
+.connect li { margin: 2px 0; }
+
+.connect-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+
+.connect-actions button {
+  font: inherit;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  background: transparent;
+  border: 1px solid var(--ink-faint);
+  border-radius: 999px;
+  padding: 8px 16px 8px calc(16px + 0.22em);
+  cursor: pointer;
+  transition: border-color 0.3s, background 0.3s, color 0.3s;
+}
+
+.connect-actions button:last-child { color: var(--ink); }
+.connect-actions button:hover, .connect-actions button:focus-visible { color: var(--ink); border-color: var(--ink); background: rgba(255, 255, 255, 0.06); outline: none; }
+
 .volume { width: 90px; accent-color: var(--ink); }
 
 /* ---- Debug ---- */

@@ -1,15 +1,15 @@
 # Handoff
 
-Status 2026-10-18: phase 1 done and approved. Phase 2 step 1, the app window, passed its checks on 2026-10-15 (results below; check 3's truly hidden case was proven in a test copy that hides the webview, and the bare app needs that call in step 5). Phase 2 steps 2 and 3, the listener and the live scene, are built and passed their checks on David's PC on 2026-10-18 (see their sections below). Step 4, connecting to Claude Code, starts when David says go. The branch is on GitHub up to `b994cb1` (pushed with David's approval in a workspace backup sweep); everything after that is committed locally only.
+Status 2026-10-18: phase 1 done and approved. Phase 2 step 1, the app window, passed its checks on 2026-10-15 (results below; check 3's truly hidden case was proven in a test copy that hides the webview, and the bare app needs that call in step 5). Phase 2 steps 2, 3 and 4 (the listener, the live scene, and connecting to Claude Code) are built and passed their checks on David's PC on 2026-10-18 (see their sections below). Step 5, the tray app, starts when David says go. The branch is on GitHub up to `b994cb1` (pushed with David's approval in a workspace backup sweep); everything after that is committed locally only.
 
 Changed 2026-10-18: David dropped the mail bottles idea. Prologue is only an ambient visualizer of Claude sessions (prompts, tool calls, subagents, waiting, compaction). No email features; `workspace/inbox-watcher` is a separate project and nothing here connects to it.
 
 ## Start here (fresh chat)
 
 1. Read `AGENTS.md` (rules), `PLAN.md` (the locked plan and every product decision), then this file.
-2. The next job is step 4 of "Phase 2: the build order" in `PLAN.md` (connecting to Claude Code), when David says go. Its notes are under "For step 4" in "Phase 2 step 2: the listener"; step 5's are at the end of "Phase 2 step 3" and in "Phase 2 step 1".
+2. The next job is step 5 of "Phase 2: the build order" in `PLAN.md` (the tray app), when David says go. Its notes are under "For step 5" in "Phase 2 step 4" and "Phase 2 step 3", and in "Phase 2 step 1" (hiding the webview).
 3. To see the current state: double-click `web/open-demo.cmd` (or run `node web/serve.cjs`) and open http://127.0.0.1:5178/web/, then click once. In the Claude app, the workspace launch config has a `prologue` preview entry. 16x runs a day in minutes; D opens the debug panel with a time-of-day slider. The app itself opens on the empty sea; `node src-tauri/tools/send-test-events.mjs session` brings boats.
-4. To run the app: `npm install` once, then `npm run tauri build -- --no-bundle` and open `src-tauri/target/release/prompt-is-prologue.exe`. It listens for Claude on 127.0.0.1:47207, but until step 4 connects the hooks, only `node src-tauri/tools/send-test-events.mjs session` sends it anything.
+4. To run the app: `npm install` once, then `npm run tauri build -- --no-bundle` and open `src-tauri/target/release/prompt-is-prologue.exe`. When it starts it puts its hooks into Claude Code's settings (the first time with a panel saying what was added), and closing its window takes them out again, so every Claude session on this PC shows up as a boat while it's open. `node src-tauri/tools/send-test-events.mjs session` sends it test events.
 
 ## Where things stand
 
@@ -17,6 +17,7 @@ Changed 2026-10-18: David dropped the mail bottles idea. Prologue is only an amb
 - Phase 1 of `PLAN.md` is built in `web/`: the world model (`src/world.js`), the seeded demo day (`src/demo.js`), the shared audio engine (`src/audio/`), and the Sea vibe (`src/sea/`). Zero dependencies, no build step.
 - Phase 2 step 1 is built in `src-tauri/`: a bare Tauri app that opens `web/` unchanged. The root `package.json` gained `@tauri-apps/cli` as a devDependency and a `tauri` script; `.gitignore` gained `src-tauri/target/` and `src-tauri/gen/`.
 - Phase 2 step 2 is built: `src-tauri/src/listener.rs` (the listener, with its tests), `web/src/live.js` plus a few lines in `web/src/main.js` (live events go to the world, and the first one turns the demo off), and `src-tauri/tools/send-test-events.mjs` (the test sender). `src-tauri/Cargo.toml` gained `serde`, `serde_json` and `getrandom`, all already in the lockfile through Tauri, so nothing new was downloaded.
+- Phase 2 step 4 is built: `src-tauri/src/claude_settings.rs` (edits Claude Code's settings file), `src-tauri/src/connection.rs` (when to connect, the panel's answers, `--disconnect`), commands and exit handling in `lib.rs`, `--disconnect` in `main.rs`, `src-tauri/windows/hooks.nsh` for the uninstaller, and the panel (`web/src/connect.js`, markup in `index.html`, styles). `serde_json` now has `preserve_order`, so the settings file keeps its key order.
 - Phase 2 step 3 is built: `Sources` in `web/src/live.js` (demo or real work, and the rules between them), `world.newDay()`, the app's no-start-screen live mode, the never-drawn boat guard in `scene.js`, and `web/test/live.test.js`.
 - The old Claude Visualizer (`server.js`, `hook.js`, `lib/`, `public/`, `start.bat`, `start.vbs`) is untouched and still listens on the whole network if started. Phase 2 removes it. Don't run `npm start`.
 - `design-refs/` holds David's four Tycho reference images for mood. It is excluded from git locally (`.git/info/exclude`) and must never be committed.
@@ -92,11 +93,7 @@ The checks, on David's PC with a test copy (debug port, built in `src-tauri/targ
 
 For step 3: done (see "Phase 2 step 3"). One note stands: live events that arrive before the page has loaded are lost, since nothing is listening yet. Harmless at app start.
 
-For step 4:
-
-- The hook entries take the port and key from `listener.json`, and must be rewritten when the port moves.
-- The port fallback can't tell "something else holds 47207" from "another copy of this app does". A second copy moves to a free port and saves it, which would take the hooks from the first. Step 5's single instance fixes it; until then, don't run two copies.
-- `claude -p` on this PC couldn't sign in on 2026-10-18 ("OAuth session expired and could not be refreshed"), so step 4's real-session check needs David to sign the CLI in again, or uses Code tab sessions.
+For step 4: done (see "Phase 2 step 4"). Two notes stand: the port fallback can't tell "something else holds 47207" from "another copy of this app does" (a second copy moves to a free port and rewrites the hooks to point at itself; step 5's single instance fixes it, so until then don't run two copies), and `claude -p` on this PC couldn't sign in on 2026-10-18 ("OAuth session expired and could not be refreshed").
 
 Test tools: `node src-tauri/tools/send-test-events.mjs session|refusals|timing|private` (it reads `listener.json`). The DevTools and browser helpers used for these checks are with step 1's harness, in its `step2/` folder. `src-tauri/target/test` holds the test builds (1.4 GB); delete it any time.
 
@@ -122,7 +119,6 @@ The checks, on David's PC with a test copy. All passed:
 5. **The demo page.** In Chromium with no app: the start screen shows, a click plays the demo at 16x with three boats, the tag and speeds show, sound runs, clean console.
 6. **Console after events.** In the app, one of each kind of event (prompt, tool, permission, subagent, compaction, failure, goodbye) logged no errors, warnings or rejections, and sound was running afterward.
 
-For step 4: unchanged from step 2's list above.
 
 For step 5:
 
@@ -130,6 +126,37 @@ For step 5:
 - The music still plays after the last real boat sails home; the fade-out once the last boat is gone is step 5's.
 - The first boat after the app opens arrives silently: sound starts on that first event, and the sound engine ignores moments until it's ready (the same in step 2). Worth fixing with step 5's "music comes back" work, keeping events in order.
 - World time in live mode is the pump's running total, capped at a second per tick, so after the PC sleeps, boats from before it stay until 20 awake minutes pass, and the quiet dawn waits 45. Worth basing live time on the wall clock in step 5 or 7.
+
+## Phase 2 step 4: connecting to Claude Code (checked 2026-10-18)
+
+David's choices for this step are in `PLAN.md` under "Connecting": hooks only while the app runs, the panel with the list, a card in the middle, and the uninstaller wired now but tested at release.
+
+What's built:
+
+- `src-tauri/src/claude_settings.rs`. Finds the settings (`$CLAUDE_CONFIG_DIR/settings.json`, else `~/.claude/settings.json`, as Claude Code does). Reads them: a missing or empty file is empty settings; one that can't be read, isn't valid JSON or isn't an object is an error, and then nothing changes. Knows the app's entries (an http hook to 127.0.0.1 or localhost, any port, path `/prompt-is-prologue/hook`) and the old visualizer's (a command hook mentioning `claude-visualizer` and `hook.js`). Takes hooks out, along with any group, event list or hooks section that leaves empty (ones already empty stay). Adds one group per event after everything else: `{"type": "http", "url": "http://127.0.0.1:<port>/prompt-is-prologue/hook", "timeout": 1, "headers": {"x-prologue-key": "<key>"}}`, no matcher, so it matches everything. Writes back in the file's own indent, line endings, final newline and BOM, only if something changed, after copying the old file to `settings.json.bak-prologue`, through a temp file renamed over the original (retried, since Windows refuses while another program reads it).
+- `src-tauri/src/connection.rs`. Keeps the person's choices in `connection.json` (next to `listener.json`): `off`, `acknowledged`, `old_hooks_kept`, `created_settings`. At start, unless `off`, it takes out any old entries of its own and adds fresh ones with the live port and key, so a moved port or a crash leftover is fixed. Quitting takes them out. The page's answers: `ok`, `undo` and `disconnect` (out, and stays out), `connect`, `remove-old`, `keep-old`. A settings file the app created is deleted again when it would be empty. `disconnect_everywhere()` is the uninstaller's.
+- `lib.rs`: commands `claude_connection` and `claude_answer`. The hooks come out on `RunEvent::ExitRequested` and again on `Exit` (harmless twice), and after ExitRequested a 3 s watchdog ends the process (see the findings). `main.rs`: `--disconnect` takes the entries out and exits without opening anything. `src-tauri/windows/hooks.nsh` runs that before the uninstaller removes the app (`bundle.windows.nsis.installerHooks`).
+- The panel: `web/src/connect.js` asks `claude_connection` at load and shows one card at a time, the problem, then what was added, then old hooks. The words are in `index.html`; David approved the list card's wording, and "Quitting the app takes them out again." was added to it for the quit behavior he chose. The old-hooks and couldn't-connect cards are drafts in the same plain style. All of it gets the voice pass at release.
+
+Findings:
+
+- Claude Code picks up hook changes at once, in running sessions, with no restart: the hook even fired for the tool call that wrote it (project settings and user settings alike). The docs add that identical handlers in more than one settings file run once.
+- With nothing listening, every tool call logs a `hook_non_blocking_error` ("connect ECONNREFUSED") in the session's transcript, shown as a "hook error" note. That's why the hooks are in only while the app runs.
+- The first real events end to end: this session's PreToolUse and PostToolUse (real tool names, real `duration_ms`) reached the app and became a boat, first through a temporary project-only hook, then through the real user settings.
+- A WM_CLOSE to Tao's hidden "Tao Thread Event Target" window (plain `taskkill` sends one to every window, and `Process.MainWindowHandle` can point at that window) breaks it. When the main window then closes, the window and webview go but the process stays in its message loop, `RunEvent::Exit` never comes, and so the old code never took the hooks out (seen with `cdb`). `ExitRequested` still fires, so the hooks now come out there, and the watchdog ends the process. Checked: with the helper broken on purpose, closing the window took the hooks out and the app ended after 3.2 s.
+
+The checks, all passed:
+
+1. **Rust:** 21 tests (14 new): byte-exact round trips (David's layout, 4 spaces, tabs with CRLF, a BOM), add then remove leaving the file byte for byte, a moved port, old-hook removal, reading and refusing, backups and no-change writes, and the connection rules (connect at start and out at quit, Undo staying out until Connect, following a new port, the old-hooks offer, a file it made going again, nothing changed when the file can't be read or there's no listener).
+2. **Stand-ins** (the test copy with `CLAUDE_CONFIG_DIR` pointing at copies in a scratch folder): an exact copy of David's file got the panel with the list; OK, then closing the window, left it byte for byte. Undo restored it at once and was remembered. A copy with 3 old visualizer hooks showed the second card after OK; Remove, then quitting, left exactly David's original. A broken file showed the couldn't-connect card, with nothing changed and no backup. `--disconnect` after a hard kill took the leftover entries out in half a second with no window, byte for byte.
+3. **The real settings**, with the test copy: David's 5 hooks and every other setting unchanged, the 16 entries added at the end, the backup identical to the original, the panel's OK. This Code-tab session's tool calls arrived without restarting it, and the entries were still there after about 5 minutes of it working. Closing the window put `~/.claude/settings.json` back byte for byte. After the test, the backup it left (the connected version, key included) was deleted and `connection.json` reset, so David's first launch shows the panel.
+
+For step 5:
+
+- The tray's Quit must exit through `app.exit` so the hooks come out. When the window closes and the app stays in the tray, `prevent_exit()` on ExitRequested, and then that handler must neither take the hooks out nor start the watchdog (comment in `lib.rs`).
+- Connect and Disconnect in the tray are `claude_answer("connect")` and `("disconnect")`. The page only asks for the status at load, so after a tray Connect it needs telling to show the panel again (an event to the page).
+- If the app is killed (`taskkill /F`, a crash, maybe a Windows shutdown), its entries stay until it next starts, and Claude shows hook error notes meanwhile. Starting at login makes that short.
+- While connected, the key is in plain text in `settings.json`, and in `settings.json.bak-prologue` (the copy from before the app's latest change; after a quit, that's the connected version).
 
 ## Phase 2 technical notes
 
@@ -173,6 +200,11 @@ For step 5:
 - The listener on Mac and Linux: the private (0600) key file, the config folders the test sender assumes there, and how binding the port behaves.
 - The moment the first live event starts the music by itself, by ear. Only David can judge whether it feels right.
 - The demo-to-live hand-over by ear: the demo boats' departure sounds and the sunrise cue as a real boat is born. Checked in pictures and numbers only.
+- A session in a terminal. The CLI on this PC is signed out, so only Code-tab sessions have reached the app; the hooks come from the same settings file.
+- The uninstaller itself (`hooks.nsh`). `--disconnect` is checked on its own; the installer is built and tried at release.
+- A Windows shutdown or logoff while the app runs: whether the hooks come out. If not, they stay until the app next starts.
+- Whether Claude Code ever rewrites `settings.json` during a long session and drops the entries (claude-code issue 44631). They held for about 5 minutes of this session working.
+- The listener and the settings editing on Mac and Linux.
 - The never-drawn boat guard with a really hidden webview. It was checked by making the page think it was hidden; step 5 hides the webview for real.
 
 ## Decisions made while building

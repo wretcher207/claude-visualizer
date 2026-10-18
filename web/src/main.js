@@ -15,6 +15,7 @@ import { createSeaScene, seaPlacement } from './sea/scene.js';
 import { createUi } from './ui.js';
 import { createTicker } from './ticker.js';
 import { Sources, listenForClaude } from './live.js';
+import { showConnection } from './connect.js';
 
 const PUMP_MS = 50;
 const TOLL_EVERY_MS = 18000;
@@ -218,6 +219,7 @@ const inApp = listenForClaude((evt) => {
 if (inApp) {
   startWorld();
   ui.openLive();
+  showConnection();
 }
 
 window.prologue = { world, demo, sources, playDemo, engine, sound, scene, state, ui, frameStats, pumpHooks, pumpTicker };
