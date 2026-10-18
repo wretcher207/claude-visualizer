@@ -120,6 +120,7 @@ The checks, on David's PC with a test copy. All passed:
 3. **The hand-over.** A real event 33 demo minutes in (shown light 0.26): the demo turned off, its three boats sailed home, the real boat was born, and the light rolled from day through dusk and night (moon and stars) to dawn in about 2.5 minutes. With the demo only seconds in (light 0.005), it settled back to dawn with no roll.
 4. **Hidden window.** With the page made to think it was hidden, a session that arrived and ended left the scene's boat count where it started (it went up by one and back down), so nothing plays when the window comes back. The real hidden case needs step 5's `Webview::hide`.
 5. **The demo page.** In Chromium with no app: the start screen shows, a click plays the demo at 16x with three boats, the tag and speeds show, sound runs, clean console.
+6. **Console after events.** In the app, one of each kind of event (prompt, tool, permission, subagent, compaction, failure, goodbye) logged no errors, warnings or rejections, and sound was running afterward.
 
 For step 4: unchanged from step 2's list above.
 
@@ -127,6 +128,7 @@ For step 5:
 
 - The tray's Play demo calls `prologue.playDemo()`. There's no stop-demo control yet (`Sources.stopDemo` exists). Decide whether the menu item toggles.
 - The music still plays after the last real boat sails home; the fade-out once the last boat is gone is step 5's.
+- The first boat after the app opens arrives silently: sound starts on that first event, and the sound engine ignores moments until it's ready (the same in step 2). Worth fixing with step 5's "music comes back" work, keeping events in order.
 - World time in live mode is the pump's running total, capped at a second per tick, so after the PC sleeps, boats from before it stay until 20 awake minutes pass, and the quiet dawn waits 45. Worth basing live time on the wall clock in step 5 or 7.
 
 ## Phase 2 technical notes
