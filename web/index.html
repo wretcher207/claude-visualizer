@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prompt Is Prologue</title>
+  <meta name="description" content="Ambient scenes and music that follow Claude Code while it works.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <canvas id="scene" aria-label="A dusk sea where each Claude Code session is a small light on the water"></canvas>
+
+  <div id="intro" class="intro">
+    <div class="intro-inner">
+      <h1 class="title">Prompt Is Prologue</h1>
+      <p class="subtitle">Sea</p>
+      <button id="begin" class="begin" type="button">Click to begin</button>
+      <p class="hint">A demo day of Claude Code work. Sound on.</p>
+    </div>
+  </div>
+
+  <div id="controls" class="controls" hidden>
+    <div class="controls-left">
+      <span class="mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="vibe-name">Sea</span>
+      <span id="demo-badge" class="badge">Demo</span>
+    </div>
+    <div class="controls-right">
+      <div class="speed" role="group" aria-label="Demo speed">
+        <button type="button" data-speed="1">1&times;</button>
+        <button type="button" data-speed="4">4&times;</button>
+        <button type="button" data-speed="16">16&times;</button>
+      </div>
+      <button id="wash" class="text-btn" type="button" aria-pressed="true" title="Sound of the water">Surf</button>
+      <button id="mute" class="text-btn" type="button" aria-pressed="false" title="Mute (M)">Mute</button>
+      <input id="volume" class="volume" type="range" min="0" max="1" step="0.01" value="0.8" aria-label="Volume">
+      <button id="fullscreen" class="text-btn" type="button" title="Full screen (F)">Full</button>
+    </div>
+  </div>
+
+  <div id="connect" class="connect" hidden>
+    <div class="connect-card">
+      <section id="connect-added" role="dialog" aria-labelledby="connect-added-title" hidden>
+        <h2 id="connect-added-title">Connected to Claude Code</h2>
+        <p>Added to your Claude Code settings (a backup is saved, your own hooks are untouched):</p>
+        <ul>
+          <li>when you send a prompt</li>
+          <li>before and after each tool Claude uses</li>
+          <li>when Claude asks you something, and when you answer</li>
+          <li>when helpers head out and come back</li>
+          <li>when Claude compacts its memory</li>
+          <li>when Claude finishes, or stops on an error</li>
+          <li>when a session ends</li>
+        </ul>
+        <p>Only which session, what kind of step, which tool and how long it took reach the scene. Your prompts and files stay out.</p>
+        <p>Quitting the app takes them out again.</p>
+        <div class="connect-actions">
+          <button type="button" data-choice="undo">Undo</button>
+          <button type="button" data-choice="ok">OK</button>
+        </div>
+      </section>
+      <section id="connect-old" role="dialog" aria-labelledby="connect-old-title" hidden>
+        <h2 id="connect-old-title">Old Claude Visualizer hooks</h2>
+        <p>Your Claude Code settings still have <span id="connect-old-count"></span> from the old Claude Visualizer. Prompt Is Prologue replaces it, so they can go.</p>
+        <div class="connect-actions">
+          <button type="button" data-choice="keep-old">Keep them</button>
+          <button type="button" data-choice="remove-old">Remove them</button>
+        </div>
+      </section>
+      <section id="connect-problem" role="dialog" aria-labelledby="connect-problem-title" hidden>
+        <h2 id="connect-problem-title">Couldn't connect to Claude Code</h2>
+        <p>Nothing was changed. <span id="connect-problem-text"></span></p>
+        <p>Boats will show once that's sorted and the app starts again.</p>
+        <div class="connect-actions">
+          <button type="button" data-choice="dismiss">OK</button>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <aside id="debug" class="debug" hidden>
+    <div class="debug-row">
+      <label for="dbg-day">Time of day</label>
+      <input id="dbg-day" type="range" min="-0.05" max="1.25" step="0.01" value="-0.05">
+      <output id="dbg-day-out">auto</output>
+    </div>
+    <div class="debug-row">
+      <label for="dbg-energy">Energy</label>
+      <input id="dbg-energy" type="range" min="-0.05" max="1" step="0.01" value="-0.05">
+      <output id="dbg-energy-out">auto</output>
+    </div>
+    <pre id="dbg-stats"></pre>
+  </aside>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
