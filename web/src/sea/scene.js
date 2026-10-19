@@ -242,6 +242,7 @@ export function createSeaScene(canvas, { world, placement }) {
 
   // A note sounded (or is about to): the sun and the boat answer it.
   function notePulse(delaySeconds, travelerId, strength = 0.5) {
+    if (document.hidden) return; // nothing draws while hidden, so nothing would ever take it off
     pulses.push({ due: clock + Math.max(0, delaySeconds), id: travelerId, strength });
   }
 

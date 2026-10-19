@@ -54,28 +54,19 @@ sound.onNote((delay, travelerId, strength) => scene.notePulse(delay, travelerId,
 
 // ---- Waiting on you: one clock for the bell and the ripples ----
 
-const tollers = new Map();
+// Next ring time (real clock) for each boat that's waiting. The pump rings
+// them, so the bell keeps time when the window is hidden.
+const tolls = new Map();
 
-function startToll(traveler) {
-  stopToll(traveler.id);
-  const ring = () => {
-    if (!traveler.waiting || !world.travelers.has(traveler.id)) return stopToll(traveler.id);
-    sound.toll(traveler);
-    scene.toll(traveler);
-  };
-  ring();
-  tollers.set(traveler.id, setInterval(ring, TOLL_EVERY_MS));
-}
-
-function stopToll(id) {
-  const timer = tollers.get(id);
-  if (timer) clearInterval(timer);
-  tollers.delete(id);
+function ring(traveler) {
+  sound.toll(traveler);
+  scene.toll(traveler);
+  tolls.set(traveler.id, performance.now() + TOLL_EVERY_MS);
 }
 
 world.on((m) => {
-  if (m.type === 'waiting:start') startToll(m.traveler);
-  if (m.type === 'waiting:end' || m.type === 'traveler:gone' || m.type === 'rest') stopToll(m.traveler.id);
+  if (m.type === 'waiting:start') ring(m.traveler);
+  if (m.type === 'waiting:end' || m.type === 'traveler:gone' || m.type === 'rest') tolls.delete(m.traveler.id);
   // A new day rolls on through the night to dawn, unless the light hasn't
   // left dawn yet; then it just starts over where it is.
   if (m.type === 'dawn' && state.phase > DAWN_HOLD) state.dawning = true;
@@ -95,6 +86,8 @@ function pump() {
     sources.pump(state.worldNow);
     world.update(state.worldNow);
   }
+
+  for (const [id, at] of tolls) if (real >= at) ring(world.travelers.get(id));
 
   // The shown time of day trails the world's target so the light changes slowly.
   const target = world.daylightTarget();

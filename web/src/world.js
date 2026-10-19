@@ -35,7 +35,6 @@ export class World {
     this.dayWork = 0;
     this.totalWork = 0;
     this.lastEventAt = null;
-    this.eventCount = 0;
   }
 
   on(fn) {
@@ -84,7 +83,6 @@ export class World {
     const sid = evt.session_id;
     const name = evt.hook_event_name;
     if (!sid || !name) return;
-    this.eventCount++;
 
     if (name === 'SessionEnd') {
       const t = this.travelers.get(sid);
@@ -97,7 +95,6 @@ export class World {
 
     t.lastActive = now;
     this.lastEventAt = now;
-    if (evt.cwd) t.cwd = evt.cwd;
 
     switch (name) {
       case 'UserPromptSubmit':
@@ -111,11 +108,11 @@ export class World {
         break;
 
       case 'PostToolUse':
-        if (!evt.agent_id) this.endWaiting(t, now);
+        if (!evt.agent_id || evt.agent_id === t.waitingAgent) this.endWaiting(t, now);
         break;
 
       case 'PostToolUseFailure': {
-        if (!evt.agent_id) this.endWaiting(t, now);
+        if (!evt.agent_id || evt.agent_id === t.waitingAgent) this.endWaiting(t, now);
         const sub = evt.agent_id ? t.subs.get(evt.agent_id) || null : null;
         if (!evt.is_interrupt) this.emit({ type: 'tool:fail', traveler: t, sub, now });
         break;
@@ -123,7 +120,7 @@ export class World {
 
       case 'PermissionRequest':
       case 'Elicitation':
-        this.startWaiting(t, name === 'Elicitation' ? 'question' : 'permission', now);
+        this.startWaiting(t, name === 'Elicitation' ? 'question' : 'permission', now, evt.agent_id);
         break;
 
       case 'Notification': {
@@ -231,7 +228,6 @@ export class World {
       slot,
       lane: SLOT_LANES[slot % SLOT_LANES.length],
       seed: hashString(evt.session_id),
-      cwd: evt.cwd || null,
       born: now,
       lastActive: now,
       lastToolAt: null,
@@ -241,6 +237,7 @@ export class World {
       turnTools: 0,
       waiting: null,
       waitingSince: null,
+      waitingAgent: null, // the subagent that asked, if one did
       resting: false,
       restSince: null,
       subs: new Map(),
@@ -258,10 +255,11 @@ export class World {
     this.emit({ type: 'traveler:gone', traveler: t, reason, now });
   }
 
-  startWaiting(t, kind, now) {
+  startWaiting(t, kind, now, agentId = null) {
     if (t.waiting) return;
     t.waiting = kind;
     t.waitingSince = now;
+    t.waitingAgent = agentId || null;
     this.emit({ type: 'waiting:start', traveler: t, kind, now });
   }
 

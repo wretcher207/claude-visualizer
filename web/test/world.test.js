@@ -81,6 +81,20 @@ test('waiting starts on a permission request and ends when work resumes', () => 
   assert.ok(seen.includes('waiting:end'));
 });
 
+test('a subagent that asked for permission ends the wait when its tool finishes', () => {
+  const world = new World();
+  const seen = [];
+  world.on((m) => seen.push(m.type));
+  world.handle({ hook_event_name: 'SubagentStart', session_id: 's', agent_id: 'a1' }, 0);
+  world.handle({ hook_event_name: 'SubagentStart', session_id: 's', agent_id: 'a2' }, 0);
+  world.handle({ hook_event_name: 'PermissionRequest', session_id: 's', tool_name: 'Bash', agent_id: 'a1' }, 10);
+  world.handle({ hook_event_name: 'PostToolUse', session_id: 's', tool_name: 'Read', agent_id: 'a2' }, 20);
+  assert.equal(world.travelers.get('s').waiting, 'permission', 'another subagent finishing changes nothing');
+  world.handle({ hook_event_name: 'PostToolUse', session_id: 's', tool_name: 'Bash', agent_id: 'a1' }, 5000);
+  assert.equal(world.travelers.get('s').waiting, null);
+  assert.ok(seen.includes('waiting:end'));
+});
+
 test('an idle traveler fades after twenty minutes and comes back at the same point', () => {
   const world = new World();
   const seen = [];

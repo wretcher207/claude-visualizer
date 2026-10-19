@@ -23,6 +23,7 @@ struct Prefs {
     acknowledged: bool,     // they've seen what was added and said OK
     old_hooks_kept: bool,   // they chose to keep the old visualizer's hooks
     created_settings: bool, // the settings file didn't exist until the app made it
+    created_hooks: bool,    // the settings had no "hooks" section until the app added one
 }
 
 /// What the page shows about the connection.
@@ -119,13 +120,15 @@ impl Connection {
             return;
         };
         let result = self.edit(|s| {
+            let no_hooks = s.doc.get("hooks").is_none();
             settings::remove(&mut s.doc, settings::is_ours);
             settings::add_ours(&mut s.doc, listener.port, &listener.key)?;
-            Ok(s.text.is_none())
+            Ok((s.text.is_none(), no_hooks))
         });
         match result {
-            Ok((created, doc)) => {
+            Ok(((created, no_hooks), doc)) => {
                 prefs.created_settings |= created;
+                prefs.created_hooks |= no_hooks;
                 status.connected = true;
                 status.just_added = !prefs.acknowledged;
                 status.old_hooks = if prefs.old_hooks_kept { 0 } else { settings::count(&doc, settings::is_old_visualizer) };
@@ -140,8 +143,16 @@ impl Connection {
 
     fn disconnect(&self, prefs: &mut Prefs, status: &mut Status) {
         let created = prefs.created_settings;
+        let keep_hooks = !prefs.created_hooks;
         let result = self.edit(|s| {
+            let hooks_at = s.doc.as_object().and_then(|o| o.keys().position(|k| k == "hooks"));
             settings::remove(&mut s.doc, settings::is_ours);
+            // An empty hooks section that was there before the app goes back where it was.
+            if let (true, Some(at), Some(root)) = (keep_hooks, hooks_at, s.doc.as_object_mut()) {
+                if !root.contains_key("hooks") {
+                    root.shift_insert(at, "hooks".into(), serde_json::json!({}));
+                }
+            }
             // A settings file the app made, now holding nothing, goes again
             // rather than being written back (empty settings with no file
             // aren't written).
@@ -159,6 +170,7 @@ impl Connection {
                     }
                     prefs.created_settings = false;
                 }
+                prefs.created_hooks = false;
                 status.connected = false;
                 status.just_added = false;
                 status.problem = None;
@@ -328,7 +340,7 @@ mod tests {
         assert_eq!(conn.status().old_hooks, 1);
         assert_eq!(conn.answer("remove-old").old_hooks, 0);
         conn.quit();
-        assert_eq!(place.text().as_deref(), Some("{}\n"), "only the old hook went; the file itself stays");
+        assert_eq!(place.text().as_deref(), Some("{\n  \"hooks\": {}\n}\n"), "only the old hook went; its section stays");
 
         let kept = Place::new("kept", Some(old));
         let conn = kept.start(47207);
@@ -336,6 +348,30 @@ mod tests {
         conn.quit();
         assert_eq!(kept.text().as_deref(), Some(old), "kept means untouched");
         assert_eq!(kept.start(47207).status().old_hooks, 0, "and it doesn't ask again");
+    }
+
+    #[test]
+    fn an_empty_hooks_section_stays() {
+        let empty = "{
+  \"hooks\": {},
+  \"theme\": \"dark\"
+}
+";
+        let place = Place::new("empty-hooks", Some(empty));
+        let conn = place.start(47207);
+        assert_eq!(place.ours(), 16);
+        conn.quit();
+        assert_eq!(place.text().as_deref(), Some(empty));
+        // A hooks section the app added goes again.
+        let added = Place::new("no-hooks", Some("{
+  \"theme\": \"dark\"
+}
+"));
+        added.start(47207).quit();
+        assert_eq!(added.text().as_deref(), Some("{
+  \"theme\": \"dark\"
+}
+"));
     }
 
     #[test]
